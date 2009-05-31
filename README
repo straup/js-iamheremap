@@ -48,6 +48,8 @@ It is heavily indebted to Simon Willison's original www.getlatlon.com website.
 
   Again, not really required except for the part where it is today.
 
+  You can register for a CloudMade API at http://developer.cloudmade.com
+
 * cloudmade_style
 
   A valid CloudMade API style identifier. Use '999' for the spooky.
@@ -59,6 +61,8 @@ It is heavily indebted to Simon Willison's original www.getlatlon.com website.
   A valid Flickr API key.
 
   Required for things like reverse geocoding and displaying location contours. 
+
+  You can register for a Flickr API key at http://www.flickr.com/services/api/keys/apply/
 
 * find_my_location
 

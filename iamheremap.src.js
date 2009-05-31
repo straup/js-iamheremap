@@ -120,8 +120,19 @@ info.aaronland.iamhere.Map = function(target, args){
             '<div id="iamhere_crosshair" style="' +
             'position: absolute;top:' + crosshair_y + 'px;height:19px;width:19px;left:' + crosshair_x + ';margin-left:-8px;display:block;' + 
     	    'background-position: center center;background-repeat: no-repeat;' + 
-            '"></div></div>' + 
-            '<div id="iamhere_coordinates" style="' + 
+    	    '"></div></div>'; 
+
+    if (this.args['modestmaps_provider'] == 'CloudMade'){
+
+        var date = new Date();
+        var yyyy = date.getYear() + 1900;
+
+        html += '<div id="iamhere_osm_notice" style="' + 
+            	'text-align:right;font-size:10px;font-family:sans-serif;margin-top:5px;' + 
+                '">Map data <a href="http://creativecommons.org/licenses/by-sa/3.0/">CCBYSA</a> ' + yyyy + ' <a href="http://openstreetmap.org/">OpenStreetMap.org</a> contributors</a></div>';
+    }
+
+    html += '<div id="iamhere_coordinates" style="' + 
             'min-height:10pt;font-family:sans-serif;font-weight:700;font-size:10pt;margin-bottom:5px;margin-top:15px;text-align:center;max-width:' + this.map_width + ';' +
             '"></div>' + 
             '<div id="iamhere_location" style="'+

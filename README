@@ -122,6 +122,9 @@ library.
 * The size and position of map (and the crosshairs) are fixed and don't update
   correctly when the window is resized.
 
+* If a shapefile is rendered too close to, or overlaps, the zoom controls
+  sometimes the zoom controls don't work.
+
 * I haven't figured out packing/minifying for this yet. It's probably just a
   missing cluebat but so far when I try I end up with weird JS errors.
 

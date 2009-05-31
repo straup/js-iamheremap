@@ -1,0 +1,143 @@
+I Am Here Map is a Javascript library to create and embedded map to find the
+latitude and longitude of a point, using the ModestMaps Javascript API.
+
+It also supports geocoding, reverse-geocoding and automagic client positioning
+using a variety of geolocation providers as well as the ability to display shape
+contours for locations that have been reverse-geocoded.
+
+It is heavily indebted to Simon Willison's original www.getlatlon.com website.
+
+# EXAMPLE
+
+ <html>
+	<head>
+        	<title>I Am Here Map</title>
+		<script type="text/javascript" src="iamheremap.js"></script>
+
+                <script>
+ $(document).ready(function(){ 
+	var args = {
+		'modestmaps_provider' : 'CloudMade',
+		'flickr_apikey' : 'YER_FLICKR_APIKEY',
+		'cloudmade_apikey' : 'YER_CLOUDMADE_APIKEY',
+		'cloudmade_style' : 999,
+		'find_my_location' : false,
+		'enable_logging' : true,
+	};
+
+	window.map = new info.aaronland.iamhere.Map('iamheremap', args);
+ });
+		</script>
+	</head>
+        <body style="margin:0;">
+        	<div id="iamheremap"></div>
+	</body>
+ </html>
+
+# CONSTRUCTOR ARGUMENTS
+
+* modestmaps_provider (required)
+
+  It's not really, since there's only one tile provider (CloudMade) as of this
+  writing but some day there will be more so you might as well get used to being
+  specific about it.
+
+* cloudmade_apikey (required)
+
+  A valid CloudMade API key.
+
+  Again, not really required except for the part where it is today.
+
+* cloudmade_style
+
+  A valid CloudMade API style identifier. Use '999' for the spooky.
+
+  Required if your 'modestmaps_provider' is CloudMade (which it is).
+
+* flickr_apikey
+
+  A valid Flickr API key.
+
+  Required for things like reverse geocoding and displaying location contours. 
+
+* find_my_location
+
+  Attempt to do automatic client geolocation on startup.
+
+* enable_logging
+
+  Write events and errors to console.log
+
+# GEOCODING
+
+Geocoding addresses is performed using either the Google Maps geocoding (v3) API
+or the Flickr API, assuming the requisite libraries have been loaded and API
+keys defined.
+
+The order of precedence for geocoding is: 
+
+    * Google Maps API
+
+    * Flickr API
+
+# REVERSE GEOCODING
+
+Reverse geocoding of points is performed using the Flickr API, assuming you've
+included a valid Flickr API key.
+
+# POSITIONING
+
+Positioning (or geolocating) of the current user is attempted using a variety of
+providers assuming the requisite libraries have been loaded and/or valid API
+keys have been defined.
+
+The order of precedence for positioning is:
+
+    * Loki/Skyhook API
+
+      Loki is first on the assumption that if you've passed a Loki API key then
+      it's probably what you want to use; this may not hold true if you're using
+      a browser/device with a built-in GPS unit but one step at a time.
+
+    * Geode API (Firefox, only)
+
+    * Google Gears Geolocation API
+
+    * Google ClientLocation API (IP lookups)
+
+The actual mechanics of the positioning logic are handled by the js-geolocation
+library.
+
+# KNOWN-KNOWNS
+
+* This has only been tested in Firefox and Safari. 
+
+* The use (and size) of JQuery is probably overkill. All things being equal it
+  will probably be replaced with plain-vanilla native DOM calls in time.
+
+* The size and position of map (and the crosshairs) are fixed and don't update
+  correctly when the window is resized.
+
+* I haven't figured out packing/minifying for this yet. It's probably just a
+  missing cluebat but so far when I try I end up with weird JS errors.
+
+* This uses a slightly abused version of the ModestMaps 'mapcontrols-raphael.js'
+  library because I haven't gotten around to writing a proper patch yet.
+
+# BUGS?
+
+Probably. Please to be gentle.
+
+# SEE ALSO
+
+* http://www.modestmaps.com/
+
+* http://developer.cloudmade.com/
+
+* http://raphaeljs.com/
+
+* http://www.getlatlon.com/
+
+* http://github.com/straup/js-flickr-api/
+
+* http://github.com/straup/js-geolocation/

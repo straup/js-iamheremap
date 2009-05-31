@@ -72,6 +72,14 @@ It is heavily indebted to Simon Willison's original www.getlatlon.com website.
 
   Write events and errors to console.log
 
+* map_height
+
+Default is 400.
+
+* map_width
+
+Default is the width of the browser window.
+
 # GEOCODING
 
 Geocoding addresses is performed using either the Google Maps geocoding (v3) API

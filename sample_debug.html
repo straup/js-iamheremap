@@ -1,0 +1,64 @@
+<html>
+	<head>
+        	<title>I Am Here Map</title>
+
+                <!--
+                    You can use this HTML to work with and debug the various 
+                    uncompressed and unmushedtogether libraries. You will still
+                    need to add your own CloudMade, Flickr, etc. API keys.
+                -->
+
+                <!--
+                    What Would Google Do?
+                -->
+                
+                <!--
+                    <script type="text/javascript" src="gears_init.js"></script>
+                    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+                    <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+                -->
+
+                <script type="text/javascript" src="lib/jquery.js"></script>
+		<script type="text/javascript" src="lib/modestmaps.js"></script>
+                <script type="text/javascript" src="lib/flickr-api.js"></script>
+		<script type="text/javascript" src="lib/geolocation.js"></script>
+		<script type="text/javascript" src="iamheremap.src.js"></script>
+
+                <script>
+$(document).ready(function(){ 
+	var args = {
+		'modestmaps_provider' : 'CloudMade',
+		'flickr_apikey' : '',
+		'cloudmade_apikey' : '',
+		'cloudmade_style' : 999,
+		'find_my_location' : false,
+		'enable_logging' : true,
+	};
+
+	if (! args['cloudmade_apikey']){
+		alert("You need to at least add your Cloudmade API key!");
+		return;
+	}
+
+	window.map = new info.aaronland.iamhere.Map('map', args);
+});
+		</script>
+
+                <style type="text/css">
+#footer {
+	font-size:11px;
+	text-align:right;
+	padding-right:20px;
+	padding-top:10px;
+	color:#333;
+	font-family:sans-serif;
+}
+		</style>
+
+	</head>
+        <body style="margin:0;">
+          	<h2 style="font-family:sans-serif;margin:30px;color:#333;">I Am Here Map</h2>
+        	<div id="map"></div>
+                <p id="footer">this is a thing made by <a href="">aaron straup cope</a> / with apologies and big sloppy kisses to <a href="http://www.getlatlon.com/">simon willison</a></p>
+	</body>
+</html>

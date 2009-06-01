@@ -4476,7 +4476,7 @@ info.aaronland.flickr.API.prototype.log = function(msg){
 
 /*
 
-info.aaronland.geolocation library v1.0
+info.aaronland.geolocation library v1.01
 Copyright (c) 2009 Aaron Straup Cope
 
 This is free software. You may redistribute it and/or modify it under
@@ -4498,13 +4498,11 @@ if (! info.aaronland.iamhere){
     info.aaronland.geo = {};
 }
 
-info.aaronland.geo.Location = function(args){
+// this is still a bit up in the air...
 
-    this.args = args;
-
-    //
-
-    this.canhas_console = (typeof(console) != 'undefined') ? 1 : 0;
+info.aaronland.geo.canhasLocation = function(){};
+    
+info.aaronland.geo.canhasLocation.prototype.survey = function(args){
 
     this.canhas_geode = (typeof(navigator.geolocation)) ? 1 : 0;
     this.canhas_loki = (typeof(Loki) != 'undefined') ? 1 : 0;
@@ -4518,16 +4516,38 @@ info.aaronland.geo.Location = function(args){
 
     // loki
 
-    if ((this.canhas_loki) && (! this.args['loki_apikey'])){
+    if ((this.canhas_loki) && (! args['loki_apikey'])){
         this.canhas_loki = 0;
     }
+
+    // in summary...
+
+    this.canhas_geolocation = 0;
+
+    if ((this.canhas_geode) || (this.canhas_loki) || (this.canhas_google)){
+        this.canhas_geolocation = 1;
+    }
+
+    return this.canhas_geolocation;
+};
+
+// inherits from canhasLocation
+
+info.aaronland.geo.Location = function(args){
+
+    this.survey(args);
+    this.args = args;
+
+    this.canhas_console = (typeof(console) != 'undefined') ? 1 : 0;
 
     this.log("flickr support: " + this.canhas_flickr);
     this.log("google support: " + this.canhas_google);
     this.log("loki support: " + this.canhas_loki);
     this.log("geode support: " + this.canhas_geode);
-
+    this.log("geolocation support: " + this.canhas_geolocation);
 };
+
+info.aaronland.geo.Location.prototype = new info.aaronland.geo.canhasLocation;
 
 info.aaronland.geo.Location.prototype.findMyLocation = function(doThisOnSuccess, doThisIfNot){
 
@@ -4652,7 +4672,7 @@ info.aaronland.geo.Location.prototype.log = function(msg){
 
 /*
 
-info.aaronland.iamhere.Map library v1.0
+info.aaronland.iamhere.Map library v1.01
 Copyright (c) 2009 Aaron Straup Cope
 
 This is free software. You may redistribute it and/or modify it under
@@ -4698,11 +4718,15 @@ info.aaronland.iamhere.Map = function(target, args){
     var _self = this;
 
     // Hello, world?
-    
+
     this.canhas_console = (typeof(console) != 'undefined') ? 1 : 0;
 
     this.canhas_flickr = (typeof(info.aaronland.flickr) != 'undefined') ? 1 : 0;
     this.canhas_google = (typeof(google) != 'undefined') ? 1 : 0;
+
+    this.canhas_geocoder = 0;
+    this.canhas_reversegeocoder = 0;
+    this.canhas_geolocation = 0;
 
     // flickr
 
@@ -4720,10 +4744,37 @@ info.aaronland.iamhere.Map = function(target, args){
         this.flickr = new info.aaronland.flickr.API(flickr_args);
     }
 
+    // google
+
+    if (this.canhas_google){
+        this.googlemaps_geocoder = new google.maps.Geocoder();
+    }
+
     // sanity checking
+
+    if ((this.canhas_flickr) || (this.canhas_google)){
+        this.canhas_geocoder = 1;
+    }
+
+    if (this.canhas_flickr){
+        this.canhas_reversegeocoder = 1;
+    }
+
+    // not entirely sure about this interface...
+
+    var canhas = new info.aaronland.geo.canhasLocation();
+    
+    if (canhas.survey(args)){
+        this.canhas_geolocation = 1;
+    }
+
+    // reporting
 
     this.log("flickr support: " + this.canhas_flickr);
     this.log("google support: " + this.canhas_google);
+    this.log("geocoder support: " + this.canhas_geocoder);
+    this.log("reverse geocoder support: " + this.canhas_reversegeocoder);
+    this.log("geolocation support: " + this.canhas_geolocation);
 
     // squirt in the map container elements
 
@@ -4749,16 +4800,20 @@ info.aaronland.iamhere.Map = function(target, args){
 
     var html = '';
 
-    if (this.canhas_google){
-        this.googlemaps_geocoder = new google.maps.Geocoder();
-    }
+    if ((this.canhas_geocoder) || (this.canhas_geolocation)){
+    	html += '<form id="iamhere_geocoder" style="text-align:center;max-width:' + this.map_width + ';">';
 
-    if ((this.canhas_google) || (this.canhas_flickr)){
-    	html += '<form id="iamhere_geocoder" style="text-align:center;max-width:' + this.map_width + ';">' + 
-       	        '<input id="iamhere_geocode_me" type="text" name="location" size="30%;" value="" style="border:1px solid;padding:1px;" />' + 
-                '<input id="iamhere_find_this" type="submit" value="&#8592; FIND THIS PLACE" style="border:1px solid; margin-left:10px;" />' + 
-                '<input id="iamhere_find_me" type="submit" value="or find my location" style="border:1px solid;margin-left:10px;" />' + 
-                '</form>';
+        if (this.canhas_geocoder){
+
+            html += '<input id="iamhere_geocode_me" type="text" name="location" size="30%;" value="" style="border:1px solid;padding:1px;" />' + 
+                    '<input id="iamhere_find_this" type="submit" value="&#8592; FIND THIS PLACE" style="border:1px solid; margin-left:10px;" />';
+	}
+
+        if (this.canhas_geolocation){
+            html += '<input id="iamhere_find_me" type="submit" value="or find my location" style="border:1px solid;margin-left:10px;" />';
+        }
+
+        html += '</form>';
     }
 
     else {
@@ -4963,6 +5018,10 @@ info.aaronland.iamhere.Map.prototype.findMyLocation = function(cb){
 
 info.aaronland.iamhere.Map.prototype.geocode = function(query){
 
+    if (! this.canhas_geocoder){
+        return;
+    }
+
     if (this.canhas_google){
         return this.geocodeGoogle(query);
     }
@@ -5110,7 +5169,7 @@ info.aaronland.iamhere.Map.prototype.geocodeFlickr = function(query){
 
 info.aaronland.iamhere.Map.prototype.reverseGeocode = function(lat, lon){
 
-    if (! this.canhas_flickr){
+    if (! this.canhas_reversegeocoder){
         return;
     }
 

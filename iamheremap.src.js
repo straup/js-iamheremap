@@ -138,14 +138,11 @@ info.aaronland.iamhere.Map = function(target, args){
 	}
 
         if (this.canhas_geolocation){
-            html += '<input id="iamhere_find_me" type="submit" value="or find my location" style="border:1px solid;margin-left:10px;" />';
+            var label = (this.canhas_geocoder) ? "or find my location" : "find my location";
+            html += '<input id="iamhere_find_me" type="submit" value="' + label + '" style="border:1px solid;margin-left:10px;" />';
         }
 
         html += '</form>';
-    }
-
-    else {
-        this.log("geocoding disabled because there is no google-fu");
     }
 
     // sudo, add support to make the map/crosshair work 

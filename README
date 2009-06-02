@@ -7,6 +7,8 @@ contours for locations that have been reverse-geocoded.
 
 It is heavily indebted to Simon Willison's original www.getlatlon.com website.
 
+See also: http://www.aaronland.info/weblog/2009/06/01/bubblegum/#iamhere
+
 # EXAMPLE
 
  <html>
@@ -80,7 +82,7 @@ It is heavily indebted to Simon Willison's original www.getlatlon.com website.
 
   The zoom level that the map should load with.
 
-  The default is 2.
+  The default is 2
 
 * find_my_location
 

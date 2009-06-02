@@ -3980,18 +3980,6 @@ com.modestmaps.PolygonMarker.prototype = {
     flickr-api.js
    ====================================================================== */
 
-/*
-
-info.aaronland.flickr.API library v1.0
-Copyright (c) 2009 Aaron Straup Cope
-
-This is free software. You may redistribute it and/or modify it under
-the same terms as Perl Artistic License.
-
-http://en.wikipedia.org/wiki/Artistic_License
-
-*/
-
 /* ======================================================================
     jsr.src.js
    ====================================================================== */
@@ -4344,7 +4332,7 @@ function binl2b64(binarray)
 
 /*
 
-info.aaronland.flickr.API library v1.0
+info.aaronland.flickr.API library v1.01
 Copyright (c) 2009 Aaron Straup Cope
 
 This is free software. You may redistribute it and/or modify it under
@@ -4373,7 +4361,7 @@ info.aaronland.flickr.API = function(args){
     this._host = 'api.flickr.com';
     this._endpoint = '/services/rest';
 
-    this.canhas_console = (typeof(console) != 'undefined') ? 1 : 0;
+    this.canhas_console = (typeof(console) == 'object') ? 1 : 0;
 }
 
 info.aaronland.flickr.API.prototype.api_call = function(method, args){
@@ -4476,7 +4464,7 @@ info.aaronland.flickr.API.prototype.log = function(msg){
 
 /*
 
-info.aaronland.geolocation library v1.01
+info.aaronland.geolocation library v1.02
 Copyright (c) 2009 Aaron Straup Cope
 
 This is free software. You may redistribute it and/or modify it under
@@ -4504,9 +4492,9 @@ info.aaronland.geo.canhasLocation = function(){};
     
 info.aaronland.geo.canhasLocation.prototype.survey = function(args){
 
-    this.canhas_geode = (typeof(navigator.geolocation)) ? 1 : 0;
-    this.canhas_loki = (typeof(Loki) != 'undefined') ? 1 : 0;
-    this.canhas_google = (typeof(google) != 'undefined') ? 1 : 0;
+    this.canhas_geode = ((typeof(navigator) == 'object') && (navigator['geolocation'])) ? 1 : 0;
+    this.canhas_loki = (typeof(Loki) == 'object') ? 1 : 0;
+    this.canhas_google = (typeof(google) == 'object') ? 1 : 0;
 
     // geode
 
@@ -4611,7 +4599,7 @@ info.aaronland.geo.Location.prototype.findMyLocation = function(doThisOnSuccess,
 
         // http://code.google.com/apis/gears/api_geolocation.html#example
 
-        if (google.gears){
+        if (google['gears']){
             this.log("find my location with (google) gears");
 
             var geo = google.gears.factory.create('beta.geolocation');
@@ -4634,7 +4622,7 @@ info.aaronland.geo.Location.prototype.findMyLocation = function(doThisOnSuccess,
 
         // http://briancray.com/2009/05/29/find-web-visitors-location-javascript-google-api/
 
-        if (google.loader.ClientLocation){
+        if ((google['loader']) && (google['loader']['ClientLocation'])){
 
             this.log("find my location with (google) client location");
 
@@ -4672,7 +4660,7 @@ info.aaronland.geo.Location.prototype.log = function(msg){
 
 /*
 
-info.aaronland.iamhere.Map library v1.01
+info.aaronland.iamhere.Map library v1.02
 Copyright (c) 2009 Aaron Straup Cope
 
 This is free software. You may redistribute it and/or modify it under
@@ -4719,10 +4707,10 @@ info.aaronland.iamhere.Map = function(target, args){
 
     // Hello, world?
 
-    this.canhas_console = (typeof(console) != 'undefined') ? 1 : 0;
+    this.canhas_console = (typeof(console) == 'object') ? 1 : 0;
 
-    this.canhas_flickr = (typeof(info.aaronland.flickr) != 'undefined') ? 1 : 0;
-    this.canhas_google = (typeof(google) != 'undefined') ? 1 : 0;
+    this.canhas_flickr = (typeof(info.aaronland.flickr) == 'object') ? 1 : 0;
+    this.canhas_google = (typeof(google) == 'object') ? 1 : 0;
 
     this.canhas_geocoder = 0;
     this.canhas_reversegeocoder = 0;
@@ -4895,9 +4883,11 @@ info.aaronland.iamhere.Map.prototype.loadModestMap = function(){
 
     // sudo, check to see there's a cookie with last location maybe?
 
-    var lat = 0;
-    var lon = 0;
-    var zoom = 2;
+    var canhas_point = ((this.args['latitude']) && (this.args['longitude'])) ? 1 : 0;
+
+    var lat = (canhas_point) ? this.args['latitude'] : 0;
+    var lon = (canhas_point) ? this.args['longitude'] : 0;
+    var zoom = (this.args['zoom']) ? this.args['zoom'] : 2;
 
     // hello, little map-y fella
 
@@ -4906,7 +4896,16 @@ info.aaronland.iamhere.Map.prototype.loadModestMap = function(){
 
     this.map_obj.setCenterZoom(new com.modestmaps.Location(lat, lon), zoom);
 
-    if (this['args']['find_my_location']){
+    if (canhas_point){
+
+    	if (this.canhas_reversegeocoder){
+        	setTimeout(function(){
+                        _self.reverseGeocode(lat, lon);
+                }, 1500);
+        }
+    }
+
+    else if (this['args']['find_my_location']){
 
         this.display_location("<em>establishing current location</em>");
 
@@ -4914,6 +4913,8 @@ info.aaronland.iamhere.Map.prototype.loadModestMap = function(){
                 _self.findMyLocation();
         }, 1500);
     }
+
+    else {} 
 
     // events
 

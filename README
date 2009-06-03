@@ -90,9 +90,13 @@ See also: http://www.aaronland.info/weblog/2009/06/01/bubblegum/#iamhere
 
   (This will be ignored if the 'latitude' and 'longitude' arguments are passed.)
 
-* enable_logging
+* auto_display_shapefiles
 
-  Write events and errors to console.log
+  Automatically load and display Flickr shapefiles for a location. Obviously,
+  this requires that you pass a valid Flickr API key and that a point be
+  successfully reverse geocoded.
+  
+  Default is false.
 
 * map_height
 
@@ -101,6 +105,10 @@ Default is 400.
 * map_width
 
 Default is the width of the browser window.
+
+* enable_logging
+
+  Write events and errors to console.log
 
 # GEOCODING
 

@@ -294,13 +294,25 @@ info.aaronland.iamhere.Map.prototype.display_coordinates = function(lat, lon){
 info.aaronland.iamhere.Map.prototype.display_location = function(loc, woeid){
 
     if (woeid){
-        loc += ' (WOE ID <a href="#" id="woe_' + woeid +'">' + woeid + '</a>)';
+
+        var extra = ' (WOE ID <a href="#" id="woe_' + woeid +'">' + woeid + '</a>)';
+
+        if (this.args['auto_display_shapefiles']){
+            extra = ' (WOE ID ' + woeid + ')';
+        }
+
+        loc += extra;
     }
 
     $("#iamhere_location").html(loc);
 
+    if (this.args['auto_display_shapefiles']){
+        return;
+    }
+
     if (woeid){
 	var _self = this;
+
     	$("#woe_" + woeid).click(function(){
                 _self.drawShapefile(woeid);
                 return false;
@@ -538,7 +550,12 @@ info.aaronland.iamhere.Map.prototype.reverseGeocode = function(lat, lon){
                 var woeid = rsp.places.place[0].woeid;
 
                 _self.woeid = woeid;
-        	_self.display_location(name, woeid)
+            	_self.display_location(name, woeid);
+            
+            	if (_self.args['auto_display_shapefiles']){
+                    _self.drawShapefile(woeid);
+		}
+
     	};
 
     	_self.log("reverse geocoding " + lat + "," + lon);

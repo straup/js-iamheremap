@@ -148,7 +148,8 @@ info.aaronland.iamhere.Map = function(target, args){
     // sudo, add support to make the map/crosshair work 
     // with window resizing...
 
-    html += '<div id="iamhere_chooser" style="position:relative;"><div id="iamhere_viewport"></div>' +
+    html += '<div id="iamhere_chooser" style="position:relative;max-width:' + this.map_width + ';">' + 
+    	    '<div id="iamhere_viewport"></div>' +
             '<div id="iamhere_crosshair" style="' +
             'position: absolute;top:' + crosshair_y + 'px;height:19px;width:19px;left:' + crosshair_x + ';margin-left:-8px;display:block;' + 
     	    'background-position: center center;background-repeat: no-repeat;' + 
@@ -160,7 +161,7 @@ info.aaronland.iamhere.Map = function(target, args){
         var yyyy = date.getYear() + 1900;
 
         html += '<div id="iamhere_osm_notice" style="' + 
-            	'text-align:right;font-size:10px;font-family:sans-serif;margin-top:5px;' + 
+            	'text-align:right;font-size:10px;font-family:sans-serif;margin-top:5px;max-width:' + this.map_width + ';' + 
                 '">Map data <a href="http://creativecommons.org/licenses/by-sa/3.0/">CCBYSA</a> ' + yyyy + ' <a href="http://openstreetmap.org/">OpenStreetMap.org</a> contributors</a></div>';
     }
 
@@ -236,16 +237,7 @@ info.aaronland.iamhere.Map.prototype.loadModestMap = function(){
 
     this.map_obj.setCenterZoom(new com.modestmaps.Location(lat, lon), zoom);
 
-    if (canhas_point){
-
-    	if (this.canhas_reversegeocoder){
-        	setTimeout(function(){
-                        _self.reverseGeocode(lat, lon);
-                }, 1500);
-        }
-    }
-
-    else if (this['args']['find_my_location']){
+    if ((this['args']['find_my_location']) && (! canhas_point)){
 
         this.display_location("<em>establishing current location</em>");
 
@@ -254,18 +246,18 @@ info.aaronland.iamhere.Map.prototype.loadModestMap = function(){
         }, 1500);
     }
 
-    else {} 
-
     // events
 
     _onChange = function (){
         $("#iamhere_warning").hide();
 
         var center = _self.map_obj.getCenter();
+        var zoom = _self.map_obj.getZoom();
 
-        this.lat = center.lat;
-        this.lon = center.lon;
-        this.woeid = null;
+        _self.lat = center.lat;
+        _self.lon = center.lon;
+        _self.zoom = zoom;
+        _self.woeid = null;
 
         _self.log("map centered on " + center.toString())
         _self.display_coordinates(center.lat, center.lon)
@@ -337,6 +329,7 @@ info.aaronland.iamhere.Map.prototype.display_warning = function(msg){
     }, 1500);
 }
 
+
 // sudo, make me a generic "who's on first" library...
 
 info.aaronland.iamhere.Map.prototype.findMyLocation = function(cb){
@@ -352,7 +345,7 @@ info.aaronland.iamhere.Map.prototype.findMyLocation = function(cb){
             return;
         }
 
-        _self.map_obj.setCenterZoom(new com.modestmaps.Location(lat, lon), 14);
+        _self.goTo(lat, lon, 14);
     };
 
     _doThisIfNot = function(msg){
@@ -436,8 +429,7 @@ info.aaronland.iamhere.Map.prototype.geocodeGoogle = function(query){
             zoom = 11;
         }
 
-        _self.map_obj.setCenterZoom(new com.modestmaps.Location(lat, lon), zoom);
-        _self.reverseGeocode(lat, lon);
+        _self.goTo(lat, lon, zoom);
     };
 
     this.googlemaps_geocoder.geocode({'address' : query}, _geocodeComplete);
@@ -498,8 +490,7 @@ info.aaronland.iamhere.Map.prototype.geocodeFlickr = function(query){
             zoom = 3;
         }
 
-        _self.map_obj.setCenterZoom(new com.modestmaps.Location(lat, lon), zoom);
-        _self.reverseGeocode(lat, lon);
+        _self.goTo(lat, lon, zoom);
     };
 
     this.display_location("<em>geocoding</em>");
@@ -550,6 +541,8 @@ info.aaronland.iamhere.Map.prototype.reverseGeocode = function(lat, lon){
                 var woeid = rsp.places.place[0].woeid;
 
                 _self.woeid = woeid;
+            	_self.placename = name;
+
             	_self.display_location(name, woeid);
             
             	if (_self.args['auto_display_shapefiles']){
@@ -653,6 +646,22 @@ info.aaronland.iamhere.Map.prototype.drawShapefile = function(woeid){
 
     this.log("shapefile request dispatched");
     return;
+};
+
+info.aaronland.iamhere.Map.prototype.goTo = function(lat, lon, zoom, do_reversegeocoding){
+
+    this.lat = lat;
+    this.lon = lon;
+
+    this.map_obj.setCenterZoom(new com.modestmaps.Location(lat, lon), zoom);
+    
+    var _self = this;
+
+    if (this.canhas_reversegeocoder){
+        setTimeout(function(){
+                _self.reverseGeocode(lat, lon);
+            }, 1500);
+    }
 };
 
 info.aaronland.iamhere.Map.prototype.log = function(msg){

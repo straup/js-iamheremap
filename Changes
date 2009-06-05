@@ -1,0 +1,29 @@
+1.1	2009-06-05	(the "Stamen" release)
+        
+	* Added proper zIndex to map controls so they work when they
+	  intersect a shapefile. (bugfix)
+          
+	* Remove support for 'find_my_location' on startup. (update; backwards
+          incompatible)
+
+	* Rename 'cloudmade_style' to more generic 'map_style'. (update;
+          backwards incompatiable)
+
+        * Display pretty-printed latitude and longitude. (new)
+
+        * Generate auto-updating permalinks and read a limited set of query
+          parameters via the URL's hash component. (new)
+
+	* Added a proper Changes file. (new)
+
+1.02	(uh...)
+
+	* Um, stuff?
+
+1.01	(uh...)
+
+	* Um, stuff?
+
+1.0	(uh...)
+
+	* Initial public release

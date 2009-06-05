@@ -7,7 +7,11 @@ contours for locations that have been reverse-geocoded.
 
 It is heavily indebted to Simon Willison's original www.getlatlon.com website.
 
-See also: http://www.aaronland.info/weblog/2009/06/01/bubblegum/#iamhere
+See also:
+
+	http://www.aaronland.info/weblog/2009/06/01/bubblegum/#iamhere
+
+	http://www.aaronland.info/iamhere/
 
 # EXAMPLE
 
@@ -22,8 +26,7 @@ See also: http://www.aaronland.info/weblog/2009/06/01/bubblegum/#iamhere
 		'modestmaps_provider' : 'CloudMade',
 		'flickr_apikey' : 'YER_FLICKR_APIKEY',
 		'cloudmade_apikey' : 'YER_CLOUDMADE_APIKEY',
-		'cloudmade_style' : 999,
-		'find_my_location' : false,
+		'map_style' : 999,
 		'enable_logging' : true,
 	};
 
@@ -52,11 +55,11 @@ See also: http://www.aaronland.info/weblog/2009/06/01/bubblegum/#iamhere
 
   You can register for a CloudMade API at http://developer.cloudmade.com
 
-* cloudmade_style
+* map_style
 
-  A valid CloudMade API style identifier. Use '999' for the spooky.
+  A map style specific to the tile provider.
 
-  Required if your 'modestmaps_provider' is CloudMade (which it is).
+  Required if your 'modestmaps_provider' is CloudMade (which it is). Use '999' for the spooky.
 
 * flickr_apikey
 
@@ -84,11 +87,13 @@ See also: http://www.aaronland.info/weblog/2009/06/01/bubblegum/#iamhere
 
   The default is 2
 
-* find_my_location
+* map_height
 
-  Attempt to do automatic client geolocation on startup.
+Default is 400.
 
-  (This will be ignored if the 'latitude' and 'longitude' arguments are passed.)
+* map_width
+
+Default is the width of the browser window.
 
 * auto_display_shapefiles
 
@@ -98,17 +103,45 @@ See also: http://www.aaronland.info/weblog/2009/06/01/bubblegum/#iamhere
   
   Default is false.
 
-* map_height
+* disable_query_args
 
-Default is 400.
+  I Am Here maps are set up to allow a limited number of config options to be
+  read from query arguments, passed either as proper query arguments or in the
+  hash component of the URL. These options take a higher precedence than those
+  passed to the object constructor.
 
-* map_width
-
-Default is the width of the browser window.
+  This flag will disable this feature. If true, this has the side-effect of
+  disabling auto-generated (and updating) permalinks since there's not really
+  any point, is there?
+ 
+  Default is false.
 
 * enable_logging
 
   Write events and errors to console.log
+
+# PERMALINKS AND QUERY ARGUMENTS
+
+Unless otherwise disabled, the following parameters may be passed as "starting"
+arguments. They will also be automatically updated in the hash (#) component of
+the URL whenever the map changes position.
+
+  * latitude
+
+  * longitude
+
+  * zoom
+
+  * style (shorthand for the 'map_style' argument, and included only if present
+    in the original URL)
+
+  * shapefiles (shorthand for the 'auto_display_shapefiles' argument, and
+    included only if present in the original URL)
+
+If you pass a URL containing a real and proper query fragment it will be
+rewritten (and redirected) to the same URL with the arguments passed in the hash
+component. This is mostly to make "pretty" URLs even if they may not be
+technically "correct". 
 
 # GEOCODING
 
@@ -160,14 +193,14 @@ library.
 * The size and position of map (and the crosshairs) are fixed and don't update
   correctly when the window is resized.
 
-* If a shapefile is rendered too close to, or overlaps, the zoom controls
-  sometimes the zoom controls don't work.
-
 * I haven't figured out packing/minifying for this yet. It's probably just a
   missing cluebat but so far when I try I end up with weird JS errors.
 
 * This uses a slightly abused version of the ModestMaps 'mapcontrols-raphael.js'
   library because I haven't gotten around to writing a proper patch yet.
+
+* These docs kind of suck and need to be rewritten in POD and output in (yer
+  format here).
 
 # BUGS?
 

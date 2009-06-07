@@ -4787,6 +4787,11 @@ if (! info.aaronland.iamhere){
 
 info.aaronland.iamhere.Map = function(target, args){
 
+    // the basics
+
+    var _self = this;
+    this.args = args;
+
     // because we read/write to the #hash component
     // for generating permalinks on the fly having
     // real live query parameters becomes ugly and
@@ -4796,7 +4801,7 @@ info.aaronland.iamhere.Map = function(target, args){
     var loc = window.location;
     var search = loc.search;
 
-    if (search){
+    if ((! this.args['disable_query_args']) && (search)){
         var url = loc.protocol + '//' + loc.host + loc.pathname + '#' + search.substring(1);
         window.location = url;
         return;
@@ -4804,11 +4809,8 @@ info.aaronland.iamhere.Map = function(target, args){
 
     // okay, let's get started!
 
-    var _self = this;
 
     this.original_title = document.title;
-
-    this.args = args;
     this.map_obj = null;
 
     this.timer_reversegeo = null;
@@ -5241,11 +5243,18 @@ info.aaronland.iamhere.Map.prototype.geocodeFlickr = function(query){
 
 info.aaronland.iamhere.Map.prototype.reverseGeocode = function(lat, lon){
 
+    this.displayLocation("");
+
     if (! this.canhas_reversegeocoder){
         return;
     }
 
-    this.displayLocation("");
+    // seriously, just don't bother...
+
+    if ((lat == 0) && (lon == 0)){
+        return;
+    }
+
     var _self = this;
 
     if (this.timer_reversegeo) {

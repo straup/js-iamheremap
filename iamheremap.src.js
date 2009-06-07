@@ -258,7 +258,19 @@ info.aaronland.iamhere.Map.prototype.loadModestMap = function(){
 
     var _self = this;
 
-    var provider = new com.modestmaps.CloudMadeProvider(this.args['cloudmade_apikey'], this.args['map_style']);
+    //
+
+    var provider = this.args['modestmaps_provider'];
+
+    if (typeof(provider) == 'object'){
+        // pass
+    }
+
+    else if (provider == 'cloudmade'){
+        provider = new com.modestmaps.CloudMadeProvider(this.args['cloudmade_apikey'], this.args['map_style']);
+    }
+
+    else { } 
 
     // sudo, check to see there's a cookie with last location maybe?
 
@@ -274,7 +286,9 @@ info.aaronland.iamhere.Map.prototype.loadModestMap = function(){
 
     // hello, little map-y fella
 
-    this.map_obj = new com.modestmaps.Map('iamhere_viewport', provider, new com.modestmaps.Point(this.map_width, this.map_height))
+    var pt = new com.modestmaps.Point(this.map_width, this.map_height);
+
+    this.map_obj = new com.modestmaps.Map('iamhere_viewport', provider, pt)
     var controls = new com.modestmaps.MapControls(this.map_obj);
 
     this.goTo(lat, lon, zoom);

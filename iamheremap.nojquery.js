@@ -3741,6 +3741,7 @@ com.modestmaps.MapControls = function(map)
     this.div.style.position = 'absolute';
     this.div.style.left = '0px';
     this.div.style.top = '0px';
+    this.div.style.zIndex = 100;
     map.parent.appendChild(this.div);
 
     this.canvas = Raphael(this.div, 200, 100);
@@ -3953,6 +3954,105 @@ com.modestmaps.PolygonMarker.prototype = {
         this.coords = [];
     }
 };
+/* ======================================================================
+    uri.js
+   ====================================================================== */
+
+/* ======================================================================
+    querystring.js
+   ====================================================================== */
+
+/* Client-side access to querystring name=value pairs
+	Version 1.3
+	28 May 2008
+	
+	License (Simplified BSD):
+	http://adamv.com/dev/javascript/qslicense.txt
+*/
+function Querystring(qs) { // optionally pass a querystring to parse
+	this.params = {};
+	
+	if (qs == null) qs = location.search.substring(1, location.search.length);
+	if (qs.length == 0) return;
+
+// Turn <plus> back to <space>
+// See: http://www.w3.org/TR/REC-html40/interact/forms.html#h-17.13.4.1
+	qs = qs.replace(/\+/g, ' ');
+	var args = qs.split('&'); // parse out name/value pairs separated via &
+	
+// split out each name=value pair
+	for (var i = 0; i < args.length; i++) {
+		var pair = args[i].split('=');
+		var name = decodeURIComponent(pair[0]);
+		
+		var value = (pair.length==2)
+			? decodeURIComponent(pair[1])
+			: name;
+		
+		this.params[name] = value;
+	}
+}
+
+Querystring.prototype.get = function(key, default_) {
+	var value = this.params[key];
+	return (value != null) ? value : default_;
+}
+
+Querystring.prototype.contains = function(key) {
+	var value = this.params[key];
+	return (value != null);
+}
+/* ======================================================================
+    uri.src.js
+   ====================================================================== */
+
+/*
+
+info.aaronland.URI library v1.0
+Copyright (c) 2009 Aaron Straup Cope
+
+This is free software. You may redistribute it and/or modify it under
+the same terms as Perl Artistic License.
+
+http://en.wikipedia.org/wiki/Artistic_License
+
+*/
+
+if (! info){
+    var info = {};
+}
+
+if (! info.aaronland){
+    info.aaronland = {};
+}
+
+if (! info.aaronland.URI){
+    info.aaronland.URI = {};
+}
+
+info.aaronland.URI = function(){
+    this.querystring;
+    this.query;
+
+    this.init();
+};
+
+info.aaronland.URI.prototype = window.location;
+
+info.aaronland.URI.prototype.init = function(){
+
+    if (window.location.hash != ''){
+        this.querystring = window.location.hash.substring(1);
+    }
+    
+    else {
+        this.querystring = window.location.search.substring(1);
+    }
+
+    this.query = new Querystring(this.querystring);
+};
+
+// -*-java-*-
 /* ======================================================================
     flickr-api.js
    ====================================================================== */
@@ -4637,7 +4737,7 @@ info.aaronland.geo.Location.prototype.log = function(msg){
 
 /*
 
-info.aaronland.iamhere.Map library v1.02
+info.aaronland.iamhere.Map library v1.1.1
 Copyright (c) 2009 Aaron Straup Cope
 
 This is free software. You may redistribute it and/or modify it under
@@ -4663,28 +4763,60 @@ if (! info.aaronland.iamhere){
 }
 
 info.aaronland.iamhere.Map = function(target, args){
-    this.args = args;
-    this.map_obj;
 
-    this.timer_reversegeo;
-    this.timer_warning;
+    // because we read/write to the #hash component
+    // for generating permalinks on the fly having
+    // real live query parameters becomes ugly and
+    // problematic. so, kick it in the shins and move
+    // on...
 
-    this.flickr;
-    this.googlemaps_geocoder;
+    var loc = window.location;
+    var search = loc.search;
 
-    this.paths_woe = new Array();
+    if (search){
+        var url = loc.protocol + '//' + loc.host + loc.pathname + '#' + search.substring(1);
+        window.location = url;
+        return;
+    }
 
-    this.lat;
-    this.lon;
-    this.woeid;
-
-    // I am here...
+    // okay, let's get started!
 
     var _self = this;
 
-    // Hello, world?
+    this.original_title = document.title;
 
-    this.canhas_console = (typeof(console) == 'object') ? 1 : 0;
+    this.args = args;
+    this.map_obj = null;
+
+    this.timer_reversegeo = null;
+    this.timer_warning = null;
+
+    this.flickr = null;
+    this.googlemaps_geocoder = null;
+
+    this.paths_woe = new Array();
+
+    // get/set cookies for last location, maybe?
+
+    this.lat = 0;
+    this.lon = 0;
+    this.zoom = 2;
+
+    this.woeid = 0;
+
+    // the URI at load time; not necessarily
+    // the permalink that will be generated
+    // as the user moves around.
+
+    this.uri = new info.aaronland.URI();
+    
+    // the URI is the command line, or something like that
+
+    if (! this.args['disable_query_args']){
+        this.loadQueryArgs();
+    }
+
+    // capabilities
 
     this.canhas_flickr = (typeof(info.aaronland.flickr) == 'object') ? 1 : 0;
     this.canhas_google = (typeof(google) == 'object') ? 1 : 0;
@@ -4823,25 +4955,30 @@ info.aaronland.iamhere.Map = function(target, args){
 
     $("#iamhere_crosshair").css("background", "url(" + data_url + ")");
 
-    // get eventastic
+    // geocoding
 
     $("#iamhere_find_this").click(function(){
             var loc = $("#iamhere_geocode_me").val();
 
             if (loc == ''){
-                _self.display_warning("nothing to geocode!");
+                _self.displayWarning("nothing to geocode!");
                 return false;
             }
 
+            console.log("WTF " + loc);
             _self.geocode(loc);
             return false;
     });
 
+    // positioning (geo-location)
+
     $("#iamhere_find_me").click(function(){
-            _self.display_location("<em>establishing current location</em>");
+            _self.displayLocation("<em>establishing current location</em>");
             _self.findMyLocation();
             return false;
     });
+
+    // dwim (zoom in/out when the crosshairs are clicked)
 
     $("#iamhere_crosshair").dblclick(function(e){
             var action = _self.map_obj.getDoubleClick();
@@ -4857,33 +4994,24 @@ info.aaronland.iamhere.Map.prototype.loadModestMap = function(){
 
     var _self = this;
 
-    var provider = new com.modestmaps.CloudMadeProvider(this.args['cloudmade_apikey'], this.args['cloudmade_style']);
+    var provider = new com.modestmaps.CloudMadeProvider(this.args['cloudmade_apikey'], this.args['map_style']);
 
     // sudo, check to see there's a cookie with last location maybe?
 
     var canhas_point = ((this.args['latitude']) && (this.args['longitude'])) ? 1 : 0;
 
-    var lat = (canhas_point) ? this.args['latitude'] : 0;
-    var lon = (canhas_point) ? this.args['longitude'] : 0;
-    var zoom = (this.args['zoom']) ? this.args['zoom'] : 2;
+    var lat = (canhas_point) ? this.args['latitude'] : this.lat;
+    var lon = (canhas_point) ? this.args['longitude'] : this.lon;
+    var zoom = (this.args['zoom']) ? this.args['zoom'] : this.zoom;
 
     // hello, little map-y fella
 
     this.map_obj = new com.modestmaps.Map('iamhere_viewport', provider, new com.modestmaps.Point(this.map_width, this.map_height))
-    new com.modestmaps.MapControls(this.map_obj);
+    var controls = new com.modestmaps.MapControls(this.map_obj);
 
     this.map_obj.setCenterZoom(new com.modestmaps.Location(lat, lon), zoom);
 
-    if ((this['args']['find_my_location']) && (! canhas_point)){
-
-        this.display_location("<em>establishing current location</em>");
-
-        setTimeout(function() {
-                _self.findMyLocation();
-        }, 1500);
-    }
-
-    // events
+    // events 
 
     _onChange = function (){
         $("#iamhere_warning").hide();
@@ -4896,8 +5024,9 @@ info.aaronland.iamhere.Map.prototype.loadModestMap = function(){
         _self.zoom = zoom;
         _self.woeid = null;
 
-        _self.log("map centered on " + center.toString())
-        _self.display_coordinates(center.lat, center.lon)
+        _self.log("map centered on " + center.toString());
+
+        _self.updateContext();
    	_self.reverseGeocode(center.lat, center.lon);
     };
 
@@ -4905,67 +5034,11 @@ info.aaronland.iamhere.Map.prototype.loadModestMap = function(){
     this.map_obj.addCallback("panned", _onChange);
     this.map_obj.addCallback("centered", _onChange);
 
-    // sudo, make me a jump to center on single-click handler
+    if (canhas_point){
+        _onChange();
+    }
 
 };
-
-info.aaronland.iamhere.Map.prototype.display_coordinates = function(lat, lon){
-
-    if (typeof(lon) == 'undefined'){
-    	$("#iamhere_coordinates").html(lat);
-        return;
-    }
-
-    $("#iamhere_coordinates").html(lat + "," + lon);
-
-};
-
-info.aaronland.iamhere.Map.prototype.display_location = function(loc, woeid){
-
-    if (woeid){
-
-        var extra = ' (WOE ID <a href="#" id="woe_' + woeid +'">' + woeid + '</a>)';
-
-        if (this.args['auto_display_shapefiles']){
-            extra = ' (WOE ID ' + woeid + ')';
-        }
-
-        loc += extra;
-    }
-
-    $("#iamhere_location").html(loc);
-
-    if (this.args['auto_display_shapefiles']){
-        return;
-    }
-
-    if (woeid){
-	var _self = this;
-
-    	$("#woe_" + woeid).click(function(){
-                _self.drawShapefile(woeid);
-                return false;
-        });
-    }
-};
-
-info.aaronland.iamhere.Map.prototype.display_warning = function(msg){
-    
-    this.log('warning: ' + msg);
-
-    $("#iamhere_warning").html(msg);
-    $("#iamhere_warning").show();
-
-    if (this.timer_warning) {
-        clearTimeout(this.timer_warning);
-        this.timer_warning = null;
-    }
-
-    this.timer_warning = setTimeout(function() {
-            $("#iamhere_warning").hide();
-    }, 1500);
-}
-
 
 // sudo, make me a generic "who's on first" library...
 
@@ -4986,8 +5059,8 @@ info.aaronland.iamhere.Map.prototype.findMyLocation = function(cb){
     };
 
     _doThisIfNot = function(msg){
-        _self.display_location("");
-        _self.display_warning(msg);
+        _self.displayLocation("");
+        _self.displayWarning(msg);
     };
 
     var loc = new info.aaronland.geo.Location(this.args);
@@ -5022,8 +5095,8 @@ info.aaronland.iamhere.Map.prototype.geocodeGoogle = function(query){
 
     this.log("geocoding (google) " + query);
 
-    this.display_coordinates("<i>geocoding</i>");
-    this.display_location("");
+    this.displayCoordinates("<i>geocoding</i>");
+    this.displayLocation("");
 
     var _self = this;
 
@@ -5032,14 +5105,14 @@ info.aaronland.iamhere.Map.prototype.geocodeGoogle = function(query){
         _self.log("geocoding dispatch returned");
 
         if (status != google.maps.GeocoderStatus.OK){
-            _self.display_warning("geocoding failed with status " + status);
-            _self.display_location("");
+            _self.displayWarning("geocoding failed with status " + status);
+            _self.displayLocation("");
             return;
         }
 
         if ((! results) || (! results.length)){
-            _self.display_warning("geocoding returned no results");
-            _self.display_location("");
+            _self.displayWarning("geocoding returned no results");
+            _self.displayLocation("");
             return;
         }
         
@@ -5088,7 +5161,7 @@ info.aaronland.iamhere.Map.prototype.geocodeFlickr = function(query){
         _self.log("geocoding dispatch returned");
 
         if (rsp.stat == 'fail'){
-            _self.display_warning("geocoding failed: " + rsp.message);
+            _self.displayWarning("geocoding failed: " + rsp.message);
             return;
         }
 
@@ -5130,7 +5203,7 @@ info.aaronland.iamhere.Map.prototype.geocodeFlickr = function(query){
         _self.goTo(lat, lon, zoom);
     };
 
-    this.display_location("<em>geocoding</em>");
+    this.displayLocation("<em>geocoding</em>");
 
     var method = 'flickr.places.find';
 
@@ -5151,7 +5224,7 @@ info.aaronland.iamhere.Map.prototype.reverseGeocode = function(lat, lon){
         return;
     }
 
-    this.display_location("");
+    this.displayLocation("");
     var _self = this;
 
     if (this.timer_reversegeo) {
@@ -5166,11 +5239,13 @@ info.aaronland.iamhere.Map.prototype.reverseGeocode = function(lat, lon){
             _self.log("reverse geocoding dispatch returned");
 
         	if (rsp.stat == 'fail'){
-            		_self.display_warning("reverse geocoding failed: " + rsp.message);
+                        _self.displayLocation("<em>unable to reverse geocode your current position</em>");
+            		_self.displayWarning("reverse geocoding failed: " + rsp.message);
             		return;
         	}
 
         	if (rsp.places.total == 0){
+                    	_self.displayLocation("<em>unable to reverse geocode your current position</em>");
             		return;
         	}
 
@@ -5178,9 +5253,9 @@ info.aaronland.iamhere.Map.prototype.reverseGeocode = function(lat, lon){
                 var woeid = rsp.places.place[0].woeid;
 
                 _self.woeid = woeid;
-            	_self.placename = name;
+            	_self.woeid_name = name;
 
-            	_self.display_location(name, woeid);
+            	_self.displayLocation(name, woeid);
             
             	if (_self.args['auto_display_shapefiles']){
                     _self.drawShapefile(woeid);
@@ -5189,7 +5264,7 @@ info.aaronland.iamhere.Map.prototype.reverseGeocode = function(lat, lon){
     	};
 
     	_self.log("reverse geocoding " + lat + "," + lon);
-	_self.display_location("<em>reverse geocoding</em>");
+	_self.displayLocation("<em>reverse geocoding</em>");
 
     	var method = 'flickr.places.findByLatLon';
         var accuracy = _self.map_obj.getZoom();
@@ -5228,12 +5303,12 @@ info.aaronland.iamhere.Map.prototype.drawShapefile = function(woeid){
         _self.log("shapefile dispatch returned");
 
        	if (rsp.stat == 'fail'){
-      		_self.display_warning("fetching shapefiles failed: " + rsp.message);
+      		_self.displayWarning("fetching shapefiles failed: " + rsp.message);
             	return;
         }
 
         if (! rsp.place.has_shapedata){
-            _self.display_warning("woe id has no shapedata");            
+            _self.displayWarning("woe id has no shapedata");            
             return;
        	}
 
@@ -5297,7 +5372,224 @@ info.aaronland.iamhere.Map.prototype.goTo = function(lat, lon, zoom, do_reverseg
     if (this.canhas_reversegeocoder){
         setTimeout(function(){
                 _self.reverseGeocode(lat, lon);
-            }, 1500);
+        }, 1500);
+    }
+};
+
+info.aaronland.iamhere.Map.prototype.loadQueryArgs = function(allowed){
+    
+    this.log("loading query arguments");   
+
+    var params_map = {
+        'latitude' : 'latitude',
+        'longitude' : 'longitude',
+        'zoom' : 'zoom',
+        'style' : 'map_style',
+        'shapefiles' : 'auto_display_shapefiles',
+    };
+
+    for (var public_key in params_map){
+
+        var private_key = params_map[public_key];
+
+        if (this.uri.query.contains(public_key)){
+            var value = this.uri.query.get(public_key);
+            this.args[private_key] = value;
+
+            this.log('assigned ' + private_key + ': ' + value); 
+        }
+    }
+};
+
+info.aaronland.iamhere.Map.prototype.generatePermalink = function(){
+    var loc = window.location;
+    var permalink = loc.protocol + '//' + loc.host + loc.pathname + '#' + this.generatePermahash();
+    return permalink;
+};
+
+info.aaronland.iamhere.Map.prototype.generatePermahash = function(){
+
+    var params = this.uri.query.params;
+    permalink = new Array();
+
+    permalink.push('latitude=' + encodeURIComponent(this.lat));
+    permalink.push('longitude=' + encodeURIComponent(this.lon));
+    permalink.push('zoom=' + encodeURIComponent(this.zoom));
+
+    for (key in params){
+
+        if ((key == 'latitude') || (key == 'longitude') || (key == 'zoom')){
+            continue;
+        }
+
+        else if (key == 'style'){
+            permalink.push('style=' + encodeURIComponent(this.args['map_style']));
+        }
+
+        // this will deal with shapefiles
+        // as well as anything else that happened
+        // to be passed in like &horse=yes
+
+        else {
+            permalink.push(encodeURIComponent(key) + '=' + encodeURIComponent(params[key]));
+        }
+    }
+
+    return permalink.join("&");
+};
+
+info.aaronland.iamhere.Map.prototype.setPermahash = function(){
+    location.href = "#" + this.generatePermahash();
+};
+
+info.aaronland.iamhere.Map.prototype.formatCoord = function(coord){
+
+    var decimals = this.args['max_decimal_points'];
+
+    if (decimals){
+        coord = coord.toFixed(decimals);
+    }
+
+    return coord;
+};
+
+info.aaronland.iamhere.Map.prototype.formatDegree = function(value, axis){
+
+    var dir = value;
+    var val = Math.abs(value);
+
+    var deg = Math.floor(val);
+    val = (val - deg) * 60;
+
+    var min = Math.floor(val);
+
+    val = (val - min) * 60;
+
+    var sec = Math.floor(val);
+    var str = deg + '&#176;';
+
+    if (min <= 9){
+        str += '0';
+    }
+
+    str += min + "'";
+
+    if (sec <= 9){
+        str += '0';
+    }
+
+    str += sec + '"';
+
+    if (axis == 'lat'){
+        str += (dir >= 0) ? 'N' : 'S';
+    }
+
+    else {
+        str += (dir >= 0) ? 'E' : 'W';
+    }
+
+    return str;
+};
+
+info.aaronland.iamhere.Map.prototype.displayCoordinates = function(lat, lon){
+    
+    // lon is not passed during geocoding when we 
+    // display a message while we wait for a response
+
+    if (! lon){
+        $("#iamhere_coordinates").html(label);
+        return;
+    }
+
+    var lat = this.formatCoord(lat);
+    var lon = this.formatCoord(lon);
+
+    var plain =  lat + ", " + lon;
+    var pretty = this.formatDegree(lat, 'lat') + " " + this.formatDegree(lon, 'lon');
+
+    var label = plain + " (" + pretty + ")";
+    $("#iamhere_coordinates").html(label);
+
+    this.updateDocumentTitle(lat, lon);
+};
+
+info.aaronland.iamhere.Map.prototype.displayLocation = function(placename, woeid){
+
+    var loc = placename;
+
+    if (woeid){
+
+        var extra = ' (WOE ID <a href="#" id="woe_' + woeid +'">' + woeid + '</a>)';
+
+        if (this.args['auto_display_shapefiles']){
+            extra = ' (WOE ID ' + woeid + ')';
+        }
+
+        loc += extra;
+    }
+
+    $("#iamhere_location").html(loc);
+
+    if (this.args['auto_display_shapefiles']){
+        return;
+    }
+
+    if (woeid){
+	var _self = this;
+
+    	$("#woe_" + woeid).click(function(){
+                _self.drawShapefile(woeid);
+                return false;
+        });
+    }
+
+    if (woeid){
+
+        var lat = this.formatCoord(this.lat);
+        var lon = this.formatCoord(this.lon);
+ 
+       this.updateDocumentTitle(lat, lon, placename);
+    }
+
+};
+
+info.aaronland.iamhere.Map.prototype.displayWarning = function(msg){
+    
+    this.log('warning: ' + msg);
+
+    $("#iamhere_warning").html(msg);
+    $("#iamhere_warning").show();
+
+    if (this.timer_warning) {
+        clearTimeout(this.timer_warning);
+        this.timer_warning = null;
+    }
+
+    this.timer_warning = setTimeout(function() {
+            $("#iamhere_warning").hide();
+    }, 1500);
+};
+
+info.aaronland.iamhere.Map.prototype.updateDocumentTitle = function(lat, lon, placename){
+
+    if (! this.args['refresh_title']){
+        return;
+    }
+
+    var title = this.original_title + ' : ' + lat + ", " + lon;
+
+    if (placename){
+        title = title + ' (' + placename + ')';
+    }
+
+    document.title = title;
+};
+
+info.aaronland.iamhere.Map.prototype.updateContext = function(){
+    this.displayCoordinates(this.lat, this.lon);
+
+    if (! this.args['disable_query_args']){
+        this.setPermahash();
     }
 };
 
@@ -5309,11 +5601,33 @@ info.aaronland.iamhere.Map.prototype.log = function(msg){
 
     // sudo make me work with (not firebug)
 
-    if (! this.canhas_console){
+    if (typeof(console) != 'object'){
         return;
     }
 
     console.log('[iamhere] ' + msg);
+};
+
+// backwards compatibility...
+
+info.aaronland.iamhere.Map.prototype.format_degree = function(value, axis){
+    this.log("obj.format_degree is depracated, you should use obj.formatDegree");
+    return this.formatDegree(value, axis);
+};
+
+info.aaronland.iamhere.Map.prototype.display_coordinates = function(lat, lon){
+    this.log("obj.display_coordinates is depracated, you should use obj.displayCoordinates");
+    return this.displayCoordinates(lat, lon);
+};
+
+info.aaronland.iamhere.Map.prototype.display_location = function(placename, woeid){
+    this.log("obj.display_location is depracated, you should use obj.displayLocation");
+    return this.displayLocation(placename, woeid);
+};
+
+info.aaronland.iamhere.Map.prototype.display_warning = function(msg){
+    this.log("obj.display_display is depracated, you should use obj.displayWarning");
+    return this.displayWarning(msg);
 };
 
 // -*-java-*-

@@ -1,0 +1,339 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>iamheremap.js - create a map for tracking lat/lon using ModestMaps</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:admin@tighty.local" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#example">EXAMPLE</a></li>
+	<li><a href="#object_methods">OBJECT METHODS</a></li>
+	<ul>
+
+		<li><a href="#new_info_aaronland_iamhere_map_args_">new info.aaronland.iamhere.Map(args)</a></li>
+	</ul>
+
+	<li><a href="#permalinks_and_query_arguments">PERMALINKS AND QUERY ARGUMENTS</a></li>
+	<li><a href="#geocoding">GEOCODING</a></li>
+	<li><a href="#reverse_geocoding">REVERSE GEOCODING</a></li>
+	<li><a href="#positioning">POSITIONING</a></li>
+	<li><a href="#knownknowns">KNOWN-KNOWNS</a></li>
+	<li><a href="#bugs">BUGS?</a></li>
+	<li><a href="#author">AUTHOR</a></li>
+	<li><a href="#license">LICENSE</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>iamheremap.js - create a map for tracking lat/lon using ModestMaps</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+ &lt;html&gt;
+        &lt;head&gt;
+                &lt;title&gt;I Am Here Map&lt;/title&gt;
+                &lt;script type=&quot;text/javascript&quot; src=&quot;iamheremap.js&quot;&gt;&lt;/script&gt;</pre>
+<pre>
+                &lt;script&gt;
+ $(document).ready(function(){ 
+        var args = {
+                'modestmaps_provider' : 'CloudMade',
+                'flickr_apikey' : 'YER_FLICKR_APIKEY',
+                'cloudmade_apikey' : 'YER_CLOUDMADE_APIKEY',
+                'map_style' : 999,
+                'enable_logging' : true,
+        };</pre>
+<pre>
+        window.map = new info.aaronland.iamhere.Map('iamheremap', args);
+ });
+                &lt;/script&gt;
+        &lt;/head&gt;
+        &lt;body style=&quot;margin:0;&quot;&gt;
+                &lt;div id=&quot;iamheremap&quot;&gt;&lt;/div&gt;
+        &lt;/body&gt;
+ &lt;/html&gt;</pre>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>I Am Here Map is a Javascript library to create and embedded map to find the
+latitude and longitude of a point, using the ModestMaps Javascript API.</p>
+<p>It also supports geocoding, reverse-geocoding and automagic client positioning
+using a variety of geolocation providers as well as the ability to display shape
+contours for locations that have been reverse-geocoded.</p>
+<p>It is heavily indebted to Simon Willison's original www.getlatlon.com website.</p>
+<p>
+</p>
+<hr />
+<h1><a name="example">EXAMPLE</a></h1>
+<p><a href="http://www.aaronland.info/iamhere/">http://www.aaronland.info/iamhere/</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="object_methods">OBJECT METHODS</a></h1>
+<p>
+</p>
+<h2><a name="new_info_aaronland_iamhere_map_args_">new info.aaronland.iamhere.Map(args)</a></h2>
+<ul>
+<li><strong><a name="item_modestmaps_provider"><strong>modestmaps_provider</strong> (required)</a></strong>
+
+<p>It's not really, since there's only one tile provider (CloudMade) as of this
+writing but some day there will be more so you might as well get used to being
+specific about it.</p>
+</li>
+<li><strong><a name="item_cloudmade_apikey"><strong>cloudmade_apikey</strong> (required)</a></strong>
+
+<p>A valid CloudMade API key.</p>
+<p>Again, not really required except for the part where it is today.</p>
+<p>You can register for a CloudMade API at <a href="http://developer.cloudmade.com">http://developer.cloudmade.com</a></p>
+</li>
+<li><strong><a name="item_map_style"><strong>map_style</strong></a></strong>
+
+<p>A map style specific to the tile provider.</p>
+<p>Required if your 'modestmaps_provider' is CloudMade (which it is). Use '999' for the spooky.</p>
+</li>
+<li><strong><a name="item_flickr_apikey"><strong>flickr_apikey</strong></a></strong>
+
+<p>A valid Flickr API key.</p>
+<p>Required for things like reverse geocoding and displaying location contours.</p>
+<p>You can register for a Flickr API key at <a href="http://www.flickr.com/services/api/keys/apply/">http://www.flickr.com/services/api/keys/apply/</a></p>
+</li>
+<li><strong><a name="item_latitude"><strong>latitude</strong></a></strong>
+
+<p>The latitude where the map should be displayed on load.</p>
+<p>The default is 0.0
+</p>
+<pre>
+
+=item * B&lt;longitude&gt;</pre>
+<p>The longitude where the map should be displayed on load.</p>
+<p>The default is 0.0</p>
+</li>
+<dt><strong><a name="item_zoom"><strong>zoom</strong></a></strong>
+
+<dd>
+<p>The zoom level that the map should load with.</p>
+</dd>
+<dd>
+<p>The default is 2</p>
+</dd>
+</li>
+<li><strong><a name="item_map_height"><strong>map_height</strong></a></strong>
+
+<p>Default is 400.</p>
+</li>
+<li><strong><a name="item_map_width"><strong>map_width</strong></a></strong>
+
+<p>Default is the width of the browser window.</p>
+</li>
+<li><strong><a name="item_auto_display_shapefiles"><strong>auto_display_shapefiles</strong></a></strong>
+
+<p>Automatically load and display Flickr shapefiles for a location. Obviously,
+this requires that you pass a valid Flickr API key and that a point be
+successfully reverse geocoded.
+</p>
+<pre>
+
+Default is false.</pre>
+</li>
+<li><strong><a name="item_disable_query_args"><strong>disable_query_args</strong></a></strong>
+
+<p>I Am Here maps are set up to allow a limited number of config options to be
+read from query arguments, passed either as proper query arguments or in the
+hash component of the URL. These options take a higher precedence than those
+passed to the object constructor.</p>
+<p>This flag will disable this feature. If true, this has the side-effect of
+disabling auto-generated (and updating) permalinks since there's not really
+any point, is there?
+</p>
+<pre>
+
+Default is false.</pre>
+</li>
+<li><strong><a name="item_max_decimal_points"><strong>max_decimal_points</strong></a></strong>
+
+<p>If not-null, trim the number of decimal points by this number when displaying
+latitudes and longitudes.</p>
+</li>
+<li><strong><a name="item_refresh_title"><strong>refresh_title</strong></a></strong>
+
+<p>If true, refresh the page title with the current latitude and longitude (and
+place name if reverse geocoding was successful).</p>
+<p>Default is false.</p>
+</li>
+<li><strong><a name="item_enable_logging"><strong>enable_logging</strong></a></strong>
+
+<p>Write events and errors to console.log</p>
+</li>
+</ul>
+<p>
+</p>
+<hr />
+<h1><a name="permalinks_and_query_arguments">PERMALINKS AND QUERY ARGUMENTS</a></h1>
+<p>Unless otherwise disabled, the following parameters may be passed as ``starting''
+arguments. They will also be automatically updated in the hash (#) component of
+the URL whenever the map changes position.</p>
+<ul>
+<li><strong><strong>latitude</strong></strong>
+
+<p>Assign the latitude of the map's current center point.</p>
+</li>
+<li><strong><a name="item_longitude"><strong>longitude</strong></a></strong>
+
+<p>Assign the longitude of the map's current center point.</p>
+</li>
+<li><strong><strong>zoom</strong></strong>
+
+<p>Assign the map's current zoom level.</p>
+</li>
+<li><strong><a name="item_style"><strong>style</strong></a></strong>
+
+<p>Shorthand for the 'map_style' argument, and included only if present in the original
+URL.</p>
+</li>
+<li><strong><a name="item_shapefiles"><strong>shapefiles</strong></a></strong>
+
+<p>Shorthand for the 'auto_display_shapefiles' argument, and included only if present
+in the original URL.</p>
+</li>
+</ul>
+<p>If you pass a URL containing a real and proper query fragment it will be
+rewritten (and redirected) to the same URL with the arguments passed in the hash
+component. This is mostly to make ``pretty'' URLs even if they may not be
+technically ``correct''.</p>
+<p>
+</p>
+<hr />
+<h1><a name="geocoding">GEOCODING</a></h1>
+<p>Geocoding addresses is performed using either the Google Maps geocoding (v3) API
+or the Flickr API, assuming the requisite libraries have been loaded and API
+keys defined.</p>
+<p>The order of precedence for geocoding is:</p>
+<ul>
+<li><strong><a name="item_google_maps_api"><strong>Google Maps API</strong></a></strong>
+
+<p>Version 3, and higher.</p>
+</li>
+<li><strong><a name="item_flickr_api"><strong>Flickr API</strong></a></strong>
+
+<p>Using the flickr.places.find API method, which does not do street-level geocoding.</p>
+</li>
+</ul>
+<p>
+</p>
+<hr />
+<h1><a name="reverse_geocoding">REVERSE GEOCODING</a></h1>
+<p>Reverse geocoding of points is performed using the Flickr API, assuming you've
+included a valid Flickr API key.</p>
+<p>
+</p>
+<hr />
+<h1><a name="positioning">POSITIONING</a></h1>
+<p>Positioning (or geolocating) of the current user is attempted using a variety of
+providers assuming the requisite libraries have been loaded and/or valid API
+keys have been defined.</p>
+<p>The order of precedence for positioning is:</p>
+<ul>
+<li><strong><a name="item_loki_2fskyhook_api"><strong>Loki/Skyhook API</strong></a></strong>
+
+<p>Loki is first on the assumption that if you've passed a Loki API key then
+it's probably what you want to use; this may not hold true if you're using
+a browser/device with a built-in GPS unit but one step at a time.</p>
+</li>
+<li><strong><a name="item_geode_api"><strong>Geode API</strong></a></strong>
+
+<p>Firefox only.</p>
+</li>
+<li><strong><a name="item_google_gears_geolocation_api"><strong>Google Gears Geolocation API</strong></a></strong>
+
+<p>Requires the Google Gears plugin/extension.</p>
+</li>
+<li><strong><a name="item_google_clientlocation_api"><strong>Google ClientLocation API</strong></a></strong>
+
+<p>IP lookups.</p>
+</li>
+</ul>
+<p>The actual mechanics of the positioning logic are handled by the js-geolocation
+library.</p>
+<p>
+</p>
+<hr />
+<h1><a name="knownknowns">KNOWN-KNOWNS</a></h1>
+<ul>
+<li><strong><a name="item_this_has_only_been_tested_in_firefox_and_safari_2e">This has only been tested in Firefox and Safari.</a></strong>
+
+<p>It should work in IE, but who knows...</p>
+</li>
+<li><strong><a name="item_use">The use (and size) of JQuery is probably overkill.</a></strong>
+
+<p>All things being equal it will probably be replaced with plain-vanilla native
+DOM calls in time.</p>
+</li>
+<li><strong><a name="item_map">The size and position of map (and the crosshairs) are fixed.</a></strong>
+
+<p>They still don't update correctly when the window is resized.</p>
+</li>
+<li><strong><a name="item_i_haven_27t_figured_out_packing_2fminifying_for_th">I haven't figured out packing/minifying for this yet.</a></strong>
+
+<p>It's probably just a missing cluebat but so far when I try I end up with weird
+Javascript errors.</p>
+<p>* This uses a modified version of the 'mapcontrols-raphael.js' library.</p>
+<p>I haven't gotten around to writing a proper patch yet against the ModestMap
+codebase yet..</p>
+</li>
+</ul>
+<p>
+</p>
+<hr />
+<h1><a name="bugs">BUGS?</a></h1>
+<p>Probably. Please to be gentle.</p>
+<p>
+</p>
+<hr />
+<h1><a name="author">AUTHOR</a></h1>
+<p>Aaron Straup Cope</p>
+<p>
+</p>
+<hr />
+<h1><a name="license">LICENSE</a></h1>
+<p>Copyright (c) 2009 Aaron Straup Cope</p>
+<p>This is free software. You may redistribute it and/or modify it under
+the same terms as Perl Artistic License.</p>
+<p><a href="http://en.wikipedia.org/wiki/Artistic_License">http://en.wikipedia.org/wiki/Artistic_License</a></p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="http://www.aaronland.info/weblog/2009/06/01/bubblegum/#iamhere">http://www.aaronland.info/weblog/2009/06/01/bubblegum/#iamhere</a></p>
+<p><a href="http://www.modestmaps.com/">http://www.modestmaps.com/</a></p>
+<p><a href="http://developer.cloudmade.com/">http://developer.cloudmade.com/</a></p>
+<p><a href="http://raphaeljs.com/">http://raphaeljs.com/</a></p>
+<p><a href="http://www.getlatlon.com/">http://www.getlatlon.com/</a></p>
+<p><a href="http://github.com/straup/js-iamheremap/">http://github.com/straup/js-iamheremap/</a></p>
+<p><a href="http://github.com/straup/js-flickr-api/">http://github.com/straup/js-flickr-api/</a>
+
+</p>
+<p><a href="http://github.com/straup/js-geolocation/">http://github.com/straup/js-geolocation/</a>
+
+</p>
+
+</body>
+
+</html>

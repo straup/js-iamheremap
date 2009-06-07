@@ -4760,7 +4760,7 @@ info.aaronland.geo.Location.prototype.log = function(msg){
 
 /*
 
-info.aaronland.iamhere.Map library v1.1
+info.aaronland.iamhere.Map library v1.1.1
 Copyright (c) 2009 Aaron Straup Cope
 
 This is free software. You may redistribute it and/or modify it under
@@ -4805,6 +4805,8 @@ info.aaronland.iamhere.Map = function(target, args){
     // okay, let's get started!
 
     var _self = this;
+
+    this.original_title = document.title;
 
     this.args = args;
     this.map_obj = null;
@@ -4982,10 +4984,11 @@ info.aaronland.iamhere.Map = function(target, args){
             var loc = $("#iamhere_geocode_me").val();
 
             if (loc == ''){
-                _self.display_warning("nothing to geocode!");
+                _self.displayWarning("nothing to geocode!");
                 return false;
             }
 
+            console.log("WTF " + loc);
             _self.geocode(loc);
             return false;
     });
@@ -4993,7 +4996,7 @@ info.aaronland.iamhere.Map = function(target, args){
     // positioning (geo-location)
 
     $("#iamhere_find_me").click(function(){
-            _self.display_location("<em>establishing current location</em>");
+            _self.displayLocation("<em>establishing current location</em>");
             _self.findMyLocation();
             return false;
     });
@@ -5060,106 +5063,6 @@ info.aaronland.iamhere.Map.prototype.loadModestMap = function(){
 
 };
 
-info.aaronland.iamhere.Map.prototype.display_coordinates = function(lat, lon){
-
-    var plain = lat + ", " + lon;
-    var pretty = this.format_degree(lat, 'lat') + " " + this.format_degree(lon, 'lon');
-
-    /* 
-    if (! this.args['disable_query_args']){
-        var loc = window.location;
-        var permalink = loc.protocol + '//' + loc.host + loc.pathname + '#' + this.generatePermahash();
-        plain = '<a href="' + permalink + '">' + plain + "</a>";
-    }
-    */
-
-    $("#iamhere_coordinates").html(plain + " (" + pretty + ")");
-};
-
-info.aaronland.iamhere.Map.prototype.format_degree = function(value, axis){
-    var dir = value;
-    var val = Math.abs(value);
-
-    var deg = Math.floor(val);
-    val = (val - deg) * 60;
-
-    var min = Math.floor(val);
-
-    val = (val - min) * 60;
-
-    var sec = Math.floor(val);
-    var str = deg + '&#176;';
-
-    if (min <= 9){
-        str += '0';
-    }
-
-    str += min + "'";
-
-    if (sec <= 9){
-        str += '0';
-    }
-
-    str += sec + '"';
-
-    if (axis == 'lat'){
-        str += (dir >= 0) ? 'N' : 'S';
-    }
-
-    else {
-        str += (dir >= 0) ? 'E' : 'W';
-    }
-
-    return str;
-};
-
-info.aaronland.iamhere.Map.prototype.display_location = function(loc, woeid){
-
-    if (woeid){
-
-        var extra = ' (WOE ID <a href="#" id="woe_' + woeid +'">' + woeid + '</a>)';
-
-        if (this.args['auto_display_shapefiles']){
-            extra = ' (WOE ID ' + woeid + ')';
-        }
-
-        loc += extra;
-    }
-
-    $("#iamhere_location").html(loc);
-
-    if (this.args['auto_display_shapefiles']){
-        return;
-    }
-
-    if (woeid){
-	var _self = this;
-
-    	$("#woe_" + woeid).click(function(){
-                _self.drawShapefile(woeid);
-                return false;
-        });
-    }
-};
-
-info.aaronland.iamhere.Map.prototype.display_warning = function(msg){
-    
-    this.log('warning: ' + msg);
-
-    $("#iamhere_warning").html(msg);
-    $("#iamhere_warning").show();
-
-    if (this.timer_warning) {
-        clearTimeout(this.timer_warning);
-        this.timer_warning = null;
-    }
-
-    this.timer_warning = setTimeout(function() {
-            $("#iamhere_warning").hide();
-    }, 1500);
-}
-
-
 // sudo, make me a generic "who's on first" library...
 
 info.aaronland.iamhere.Map.prototype.findMyLocation = function(cb){
@@ -5179,8 +5082,8 @@ info.aaronland.iamhere.Map.prototype.findMyLocation = function(cb){
     };
 
     _doThisIfNot = function(msg){
-        _self.display_location("");
-        _self.display_warning(msg);
+        _self.displayLocation("");
+        _self.displayWarning(msg);
     };
 
     var loc = new info.aaronland.geo.Location(this.args);
@@ -5215,8 +5118,8 @@ info.aaronland.iamhere.Map.prototype.geocodeGoogle = function(query){
 
     this.log("geocoding (google) " + query);
 
-    this.display_coordinates("<i>geocoding</i>");
-    this.display_location("");
+    this.displayCoordinates("<i>geocoding</i>");
+    this.displayLocation("");
 
     var _self = this;
 
@@ -5225,14 +5128,14 @@ info.aaronland.iamhere.Map.prototype.geocodeGoogle = function(query){
         _self.log("geocoding dispatch returned");
 
         if (status != google.maps.GeocoderStatus.OK){
-            _self.display_warning("geocoding failed with status " + status);
-            _self.display_location("");
+            _self.displayWarning("geocoding failed with status " + status);
+            _self.displayLocation("");
             return;
         }
 
         if ((! results) || (! results.length)){
-            _self.display_warning("geocoding returned no results");
-            _self.display_location("");
+            _self.displayWarning("geocoding returned no results");
+            _self.displayLocation("");
             return;
         }
         
@@ -5281,7 +5184,7 @@ info.aaronland.iamhere.Map.prototype.geocodeFlickr = function(query){
         _self.log("geocoding dispatch returned");
 
         if (rsp.stat == 'fail'){
-            _self.display_warning("geocoding failed: " + rsp.message);
+            _self.displayWarning("geocoding failed: " + rsp.message);
             return;
         }
 
@@ -5323,7 +5226,7 @@ info.aaronland.iamhere.Map.prototype.geocodeFlickr = function(query){
         _self.goTo(lat, lon, zoom);
     };
 
-    this.display_location("<em>geocoding</em>");
+    this.displayLocation("<em>geocoding</em>");
 
     var method = 'flickr.places.find';
 
@@ -5344,7 +5247,7 @@ info.aaronland.iamhere.Map.prototype.reverseGeocode = function(lat, lon){
         return;
     }
 
-    this.display_location("");
+    this.displayLocation("");
     var _self = this;
 
     if (this.timer_reversegeo) {
@@ -5359,11 +5262,13 @@ info.aaronland.iamhere.Map.prototype.reverseGeocode = function(lat, lon){
             _self.log("reverse geocoding dispatch returned");
 
         	if (rsp.stat == 'fail'){
-            		_self.display_warning("reverse geocoding failed: " + rsp.message);
+                        _self.displayLocation("<em>unable to reverse geocode your current position</em>");
+            		_self.displayWarning("reverse geocoding failed: " + rsp.message);
             		return;
         	}
 
         	if (rsp.places.total == 0){
+                    	_self.displayLocation("<em>unable to reverse geocode your current position</em>");
             		return;
         	}
 
@@ -5371,9 +5276,9 @@ info.aaronland.iamhere.Map.prototype.reverseGeocode = function(lat, lon){
                 var woeid = rsp.places.place[0].woeid;
 
                 _self.woeid = woeid;
-            	_self.placename = name;
+            	_self.woeid_name = name;
 
-            	_self.display_location(name, woeid);
+            	_self.displayLocation(name, woeid);
             
             	if (_self.args['auto_display_shapefiles']){
                     _self.drawShapefile(woeid);
@@ -5382,7 +5287,7 @@ info.aaronland.iamhere.Map.prototype.reverseGeocode = function(lat, lon){
     	};
 
     	_self.log("reverse geocoding " + lat + "," + lon);
-	_self.display_location("<em>reverse geocoding</em>");
+	_self.displayLocation("<em>reverse geocoding</em>");
 
     	var method = 'flickr.places.findByLatLon';
         var accuracy = _self.map_obj.getZoom();
@@ -5421,12 +5326,12 @@ info.aaronland.iamhere.Map.prototype.drawShapefile = function(woeid){
         _self.log("shapefile dispatch returned");
 
        	if (rsp.stat == 'fail'){
-      		_self.display_warning("fetching shapefiles failed: " + rsp.message);
+      		_self.displayWarning("fetching shapefiles failed: " + rsp.message);
             	return;
         }
 
         if (! rsp.place.has_shapedata){
-            _self.display_warning("woe id has no shapedata");            
+            _self.displayWarning("woe id has no shapedata");            
             return;
        	}
 
@@ -5519,45 +5424,197 @@ info.aaronland.iamhere.Map.prototype.loadQueryArgs = function(allowed){
     }
 };
 
-info.aaronland.iamhere.Map.prototype.updateContext = function(){
-    this.display_coordinates(this.lat, this.lon);
+info.aaronland.iamhere.Map.prototype.generatePermalink = function(){
+    var loc = window.location;
+    var permalink = loc.protocol + '//' + loc.host + loc.pathname + '#' + this.generatePermahash();
+    return permalink;
+};
 
-    if (! this.args['disable_query_args']){
-        this.setPermahash();
+info.aaronland.iamhere.Map.prototype.generatePermahash = function(){
+
+    var params = this.uri.query.params;
+    permalink = new Array();
+
+    permalink.push('latitude=' + encodeURIComponent(this.lat));
+    permalink.push('longitude=' + encodeURIComponent(this.lon));
+    permalink.push('zoom=' + encodeURIComponent(this.zoom));
+
+    for (key in params){
+
+        if ((key == 'latitude') || (key == 'longitude') || (key == 'zoom')){
+            continue;
+        }
+
+        else if (key == 'style'){
+            permalink.push('style=' + encodeURIComponent(this.args['map_style']));
+        }
+
+        // this will deal with shapefiles
+        // as well as anything else that happened
+        // to be passed in like &horse=yes
+
+        else {
+            permalink.push(encodeURIComponent(key) + '=' + encodeURIComponent(params[key]));
+        }
     }
-}
+
+    return permalink.join("&");
+};
 
 info.aaronland.iamhere.Map.prototype.setPermahash = function(){
     location.href = "#" + this.generatePermahash();
 };
 
-info.aaronland.iamhere.Map.prototype.generatePermahash = function(){
+info.aaronland.iamhere.Map.prototype.formatCoord = function(coord){
 
-    permalink = new Array();
+    var decimals = this.args['max_decimal_points'];
 
-    if (this.lat){
-        permalink.push('latitude=' + encodeURIComponent(this.lat));
+    if (decimals){
+        coord = coord.toFixed(decimals);
     }
 
-    if (this.lon){
-        permalink.push('longitude=' + encodeURIComponent(this.lon));
+    return coord;
+};
+
+info.aaronland.iamhere.Map.prototype.formatDegree = function(value, axis){
+
+    var dir = value;
+    var val = Math.abs(value);
+
+    var deg = Math.floor(val);
+    val = (val - deg) * 60;
+
+    var min = Math.floor(val);
+
+    val = (val - min) * 60;
+
+    var sec = Math.floor(val);
+    var str = deg + '&#176;';
+
+    if (min <= 9){
+        str += '0';
     }
 
-    if (this.zoom){
-        permalink.push('zoom=' + encodeURIComponent(this.zoom));
+    str += min + "'";
+
+    if (sec <= 9){
+        str += '0';
     }
 
-    if (this.uri.query.contains('shapesfiles')){
-        permalink.push('shapefiles=1');
+    str += sec + '"';
+
+    if (axis == 'lat'){
+        str += (dir >= 0) ? 'N' : 'S';
     }
 
-    if (this.uri.query.contains('style')){
-        var style = this.args['map_style'];
-        permalink.push('style=' + encodeURIComponent(style));
+    else {
+        str += (dir >= 0) ? 'E' : 'W';
     }
 
-    return permalink.join("&");
-}
+    return str;
+};
+
+info.aaronland.iamhere.Map.prototype.displayCoordinates = function(lat, lon){
+    
+    // lon is not passed during geocoding when we 
+    // display a message while we wait for a response
+
+    if (! lon){
+        $("#iamhere_coordinates").html(label);
+        return;
+    }
+
+    var lat = this.formatCoord(lat);
+    var lon = this.formatCoord(lon);
+
+    var plain =  lat + ", " + lon;
+    var pretty = this.formatDegree(lat, 'lat') + " " + this.formatDegree(lon, 'lon');
+
+    var label = plain + " (" + pretty + ")";
+    $("#iamhere_coordinates").html(label);
+
+    this.updateDocumentTitle(lat, lon);
+};
+
+info.aaronland.iamhere.Map.prototype.displayLocation = function(placename, woeid){
+
+    var loc = placename;
+
+    if (woeid){
+
+        var extra = ' (WOE ID <a href="#" id="woe_' + woeid +'">' + woeid + '</a>)';
+
+        if (this.args['auto_display_shapefiles']){
+            extra = ' (WOE ID ' + woeid + ')';
+        }
+
+        loc += extra;
+    }
+
+    $("#iamhere_location").html(loc);
+
+    if (this.args['auto_display_shapefiles']){
+        return;
+    }
+
+    if (woeid){
+	var _self = this;
+
+    	$("#woe_" + woeid).click(function(){
+                _self.drawShapefile(woeid);
+                return false;
+        });
+    }
+
+    if (woeid){
+
+        var lat = this.formatCoord(this.lat);
+        var lon = this.formatCoord(this.lon);
+ 
+       this.updateDocumentTitle(lat, lon, placename);
+    }
+
+};
+
+info.aaronland.iamhere.Map.prototype.displayWarning = function(msg){
+    
+    this.log('warning: ' + msg);
+
+    $("#iamhere_warning").html(msg);
+    $("#iamhere_warning").show();
+
+    if (this.timer_warning) {
+        clearTimeout(this.timer_warning);
+        this.timer_warning = null;
+    }
+
+    this.timer_warning = setTimeout(function() {
+            $("#iamhere_warning").hide();
+    }, 1500);
+};
+
+info.aaronland.iamhere.Map.prototype.updateDocumentTitle = function(lat, lon, placename){
+
+    if (! this.args['refresh_title']){
+        return;
+    }
+
+    var title = this.original_title + ' : ' + lat + ", " + lon;
+
+    if (placename){
+        title = title + ' (' + placename + ')';
+    }
+
+    document.title = title;
+};
+
+info.aaronland.iamhere.Map.prototype.updateContext = function(){
+    this.displayCoordinates(this.lat, this.lon);
+
+    if (! this.args['disable_query_args']){
+        this.setPermahash();
+    }
+};
 
 info.aaronland.iamhere.Map.prototype.log = function(msg){
 
@@ -5572,6 +5629,28 @@ info.aaronland.iamhere.Map.prototype.log = function(msg){
     }
 
     console.log('[iamhere] ' + msg);
+};
+
+// backwards compatibility...
+
+info.aaronland.iamhere.Map.prototype.format_degree = function(value, axis){
+    this.log("obj.format_degree is depracated, you should use obj.formatDegree");
+    return this.formatDegree(value, axis);
+};
+
+info.aaronland.iamhere.Map.prototype.display_coordinates = function(lat, lon){
+    this.log("obj.display_coordinates is depracated, you should use obj.displayCoordinates");
+    return this.displayCoordinates(lat, lon);
+};
+
+info.aaronland.iamhere.Map.prototype.display_location = function(placename, woeid){
+    this.log("obj.display_location is depracated, you should use obj.displayLocation");
+    return this.displayLocation(placename, woeid);
+};
+
+info.aaronland.iamhere.Map.prototype.display_warning = function(msg){
+    this.log("obj.display_display is depracated, you should use obj.displayWarning");
+    return this.displayWarning(msg);
 };
 
 // -*-java-*-

@@ -1,3 +1,21 @@
+1.1.1	2009-06-06      (the "horse=yes" release)
+
+	* Don't overwrite all other non-iamhere query parameters when generating
+          permalink/permahash. (bugfix)
+
+	* Better error messaging when reverse geocoding fails. (update)
+
+	* Made all functions camel-case; added wrappers for backward
+        * compatibility. (update)
+
+        * Added a 'refresh_title' parameter to update document title when the
+          map changes. (new)
+
+	* Added a 'coordinates_decimal_points' parameter to trim lat/lon display
+          to a fixed number of decimal points. (new)
+         
+	* (less bad) documentation, including HTML output. (new)
+
 1.1	2009-06-05	(the "Stamen" release)
         
 	* Added proper zIndex to map controls so they work when they

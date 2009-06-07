@@ -1,221 +1,286 @@
-I Am Here Map is a Javascript library to create and embedded map to find the
-latitude and longitude of a point, using the ModestMaps Javascript API.
+NAME
+    iamheremap.js - create a map for tracking lat/lon using ModestMaps
 
-It also supports geocoding, reverse-geocoding and automagic client positioning
-using a variety of geolocation providers as well as the ability to display shape
-contours for locations that have been reverse-geocoded.
+SYNOPSIS
+     <html>
+            <head>
+                    <title>I Am Here Map</title>
+                    <script type="text/javascript" src="iamheremap.js"></script>
 
-It is heavily indebted to Simon Willison's original www.getlatlon.com website.
+                    <script>
+     $(document).ready(function(){ 
+            var args = {
+                    'modestmaps_provider' : 'CloudMade',
+                    'flickr_apikey' : 'YER_FLICKR_APIKEY',
+                    'cloudmade_apikey' : 'YER_CLOUDMADE_APIKEY',
+                    'map_style' : 999,
+                    'enable_logging' : true,
+            };
 
-See also:
+            window.map = new info.aaronland.iamhere.Map('iamheremap', args);
+     });
+                    </script>
+            </head>
+            <body style="margin:0;">
+                    <div id="iamheremap"></div>
+            </body>
+     </html>
 
-	http://www.aaronland.info/weblog/2009/06/01/bubblegum/#iamhere
+DESCRIPTION
+    I Am Here Map is a Javascript library to create and embedded map to find
+    the latitude and longitude of a point, using the ModestMaps Javascript
+    API.
 
-	http://www.aaronland.info/iamhere/
+    It also supports geocoding, reverse-geocoding and automagic client
+    positioning using a variety of geolocation providers as well as the
+    ability to display shape contours for locations that have been
+    reverse-geocoded.
 
-# EXAMPLE
+    It is heavily indebted to Simon Willison's original www.getlatlon.com
+    website.
 
- <html>
-	<head>
-        	<title>I Am Here Map</title>
-		<script type="text/javascript" src="iamheremap.js"></script>
+EXAMPLE
+    <http://www.aaronland.info/iamhere/>
 
-                <script>
- $(document).ready(function(){ 
-	var args = {
-		'modestmaps_provider' : 'CloudMade',
-		'flickr_apikey' : 'YER_FLICKR_APIKEY',
-		'cloudmade_apikey' : 'YER_CLOUDMADE_APIKEY',
-		'map_style' : 999,
-		'enable_logging' : true,
-	};
+OBJECT METHODS
+  new info.aaronland.iamhere.Map(args)
+    *   modestmaps_provider (required)
 
-	window.map = new info.aaronland.iamhere.Map('iamheremap', args);
- });
-		</script>
-	</head>
-        <body style="margin:0;">
-        	<div id="iamheremap"></div>
-	</body>
- </html>
+        It's not really, since there's only one tile provider (CloudMade) as
+        of this writing but some day there will be more so you might as well
+        get used to being specific about it.
 
-# CONSTRUCTOR ARGUMENTS
+    *   cloudmade_apikey (required)
 
-* modestmaps_provider (required)
+        A valid CloudMade API key.
 
-  It's not really, since there's only one tile provider (CloudMade) as of this
-  writing but some day there will be more so you might as well get used to being
-  specific about it.
+        Again, not really required except for the part where it is today.
 
-* cloudmade_apikey (required)
+        You can register for a CloudMade API at
+        http://developer.cloudmade.com
 
-  A valid CloudMade API key.
+    *   map_style
 
-  Again, not really required except for the part where it is today.
+        A map style specific to the tile provider.
 
-  You can register for a CloudMade API at http://developer.cloudmade.com
+        Required if your 'modestmaps_provider' is CloudMade (which it is).
+        Use '999' for the spooky.
 
-* map_style
+    *   flickr_apikey
 
-  A map style specific to the tile provider.
+        A valid Flickr API key.
 
-  Required if your 'modestmaps_provider' is CloudMade (which it is). Use '999' for the spooky.
+        Required for things like reverse geocoding and displaying location
+        contours.
 
-* flickr_apikey
+        You can register for a Flickr API key at
+        http://www.flickr.com/services/api/keys/apply/
 
-  A valid Flickr API key.
+    *   latitude
 
-  Required for things like reverse geocoding and displaying location contours. 
+        The latitude where the map should be displayed on load.
 
-  You can register for a Flickr API key at http://www.flickr.com/services/api/keys/apply/
+        The default is 0.0
 
-* latitude
+    *   longitude
 
-  The latitude where the map should be displayed on load.
+        The longitude where the map should be displayed on load.
 
-  The default is 0.0
-  
-* longitude
+        The default is 0.0
 
-  The longitude where the map should be displayed on load.
+    *   zoom
 
-  The default is 0.0
+        The zoom level that the map should load with.
 
-* zoom
+        The default is 2
 
-  The zoom level that the map should load with.
+    *   map_height
 
-  The default is 2
+        Default is 400.
 
-* map_height
+    *   map_width
 
-Default is 400.
+        Default is the width of the browser window.
 
-* map_width
+    *   auto_display_shapefiles
 
-Default is the width of the browser window.
+        Automatically load and display Flickr shapefiles for a location.
+        Obviously, this requires that you pass a valid Flickr API key and
+        that a point be successfully reverse geocoded.
 
-* auto_display_shapefiles
+        Default is false.
 
-  Automatically load and display Flickr shapefiles for a location. Obviously,
-  this requires that you pass a valid Flickr API key and that a point be
-  successfully reverse geocoded.
-  
-  Default is false.
+    *   disable_query_args
 
-* disable_query_args
+        I Am Here maps are set up to allow a limited number of config
+        options to be read from query arguments, passed either as proper
+        query arguments or in the hash component of the URL. These options
+        take a higher precedence than those passed to the object
+        constructor.
 
-  I Am Here maps are set up to allow a limited number of config options to be
-  read from query arguments, passed either as proper query arguments or in the
-  hash component of the URL. These options take a higher precedence than those
-  passed to the object constructor.
+        This flag will disable this feature. If true, this has the
+        side-effect of disabling auto-generated (and updating) permalinks
+        since there's not really any point, is there?
 
-  This flag will disable this feature. If true, this has the side-effect of
-  disabling auto-generated (and updating) permalinks since there's not really
-  any point, is there?
- 
-  Default is false.
+        Default is false.
 
-* enable_logging
+    *   max_decimal_points
 
-  Write events and errors to console.log
+        If not-null, trim the number of decimal points by this number when
+        displaying latitudes and longitudes.
 
-# PERMALINKS AND QUERY ARGUMENTS
+    *   refresh_title
 
-Unless otherwise disabled, the following parameters may be passed as "starting"
-arguments. They will also be automatically updated in the hash (#) component of
-the URL whenever the map changes position.
+        If true, refresh the page title with the current latitude and
+        longitude (and place name if reverse geocoding was successful).
 
-  * latitude
+        Default is false.
 
-  * longitude
+    *   enable_logging
 
-  * zoom
+        Write events and errors to console.log
 
-  * style (shorthand for the 'map_style' argument, and included only if present
-    in the original URL)
+PERMALINKS AND QUERY ARGUMENTS
+    Unless otherwise disabled, the following parameters may be passed as
+    "starting" arguments. They will also be automatically updated in the
+    hash (#) component of the URL whenever the map changes position.
 
-  * shapefiles (shorthand for the 'auto_display_shapefiles' argument, and
-    included only if present in the original URL)
+    *   latitude
 
-If you pass a URL containing a real and proper query fragment it will be
-rewritten (and redirected) to the same URL with the arguments passed in the hash
-component. This is mostly to make "pretty" URLs even if they may not be
-technically "correct". 
+        Assign the latitude of the map's current center point.
 
-# GEOCODING
+    *   longitude
 
-Geocoding addresses is performed using either the Google Maps geocoding (v3) API
-or the Flickr API, assuming the requisite libraries have been loaded and API
-keys defined.
+        Assign the longitude of the map's current center point.
 
-The order of precedence for geocoding is: 
+    *   zoom
 
-    * Google Maps API
+        Assign the map's current zoom level.
 
-    * Flickr API
+    *   style
 
-# REVERSE GEOCODING
+        Shorthand for the 'map_style' argument, and included only if present
+        in the original URL.
 
-Reverse geocoding of points is performed using the Flickr API, assuming you've
-included a valid Flickr API key.
+    *   shapefiles
 
-# POSITIONING
+        Shorthand for the 'auto_display_shapefiles' argument, and included
+        only if present in the original URL.
 
-Positioning (or geolocating) of the current user is attempted using a variety of
-providers assuming the requisite libraries have been loaded and/or valid API
-keys have been defined.
+    If you pass a URL containing a real and proper query fragment it will be
+    rewritten (and redirected) to the same URL with the arguments passed in
+    the hash component. This is mostly to make "pretty" URLs even if they
+    may not be technically "correct".
 
-The order of precedence for positioning is:
+GEOCODING
+    Geocoding addresses is performed using either the Google Maps geocoding
+    (v3) API or the Flickr API, assuming the requisite libraries have been
+    loaded and API keys defined.
 
-    * Loki/Skyhook API
+    The order of precedence for geocoding is:
 
-      Loki is first on the assumption that if you've passed a Loki API key then
-      it's probably what you want to use; this may not hold true if you're using
-      a browser/device with a built-in GPS unit but one step at a time.
+    *   Google Maps API
 
-    * Geode API (Firefox, only)
+        Version 3, and higher.
 
-    * Google Gears Geolocation API
+    *   Flickr API
 
-    * Google ClientLocation API (IP lookups)
+        Using the flickr.places.find API method, which does not do
+        street-level geocoding.
 
-The actual mechanics of the positioning logic are handled by the js-geolocation
-library.
+REVERSE GEOCODING
+    Reverse geocoding of points is performed using the Flickr API, assuming
+    you've included a valid Flickr API key.
 
-# KNOWN-KNOWNS
+POSITIONING
+    Positioning (or geolocating) of the current user is attempted using a
+    variety of providers assuming the requisite libraries have been loaded
+    and/or valid API keys have been defined.
 
-* This has only been tested in Firefox and Safari. 
+    The order of precedence for positioning is:
 
-* The use (and size) of JQuery is probably overkill. All things being equal it
-  will probably be replaced with plain-vanilla native DOM calls in time.
+    *   Loki/Skyhook API
 
-* The size and position of map (and the crosshairs) are fixed and don't update
-  correctly when the window is resized.
+        Loki is first on the assumption that if you've passed a Loki API key
+        then it's probably what you want to use; this may not hold true if
+        you're using a browser/device with a built-in GPS unit but one step
+        at a time.
 
-* I haven't figured out packing/minifying for this yet. It's probably just a
-  missing cluebat but so far when I try I end up with weird JS errors.
+    *   Geode API
 
-* This uses a slightly abused version of the ModestMaps 'mapcontrols-raphael.js'
-  library because I haven't gotten around to writing a proper patch yet.
+        Firefox only.
 
-* These docs kind of suck and need to be rewritten in POD and output in (yer
-  format here).
+    *   Google Gears Geolocation API
 
-# BUGS?
+        Requires the Google Gears plugin/extension.
 
-Probably. Please to be gentle.
+    *   Google ClientLocation API
 
-# SEE ALSO
+        IP lookups.
 
-* http://www.modestmaps.com/
+    The actual mechanics of the positioning logic are handled by the
+    js-geolocation library.
 
-* http://developer.cloudmade.com/
+KNOWN-KNOWNS
+    *   This has only been tested in Firefox and Safari.
 
-* http://raphaeljs.com/
+        It should work in IE, but who knows...
 
-* http://www.getlatlon.com/
+    *   The use (and size) of JQuery is probably overkill.
 
-* http://github.com/straup/js-flickr-api/
+        All things being equal it will probably be replaced with
+        plain-vanilla native DOM calls in time.
 
-* http://github.com/straup/js-geolocation/
+    *   The size and position of map (and the crosshairs) are fixed.
+
+        They still don't update correctly when the window is resized.
+
+    *   I haven't figured out packing/minifying for this yet.
+
+        It's probably just a missing cluebat but so far when I try I end up
+        with weird Javascript errors.
+
+        * This uses a modified version of the 'mapcontrols-raphael.js'
+        library.
+
+        I haven't gotten around to writing a proper patch yet against the
+        ModestMap codebase yet..
+
+BUGS?
+    Probably. Please to be gentle.
+
+AUTHOR
+    Aaron Straup Cope
+
+LICENSE
+    Copyright (c) 2009 Aaron Straup Cope
+
+    This is free software. You may redistribute it and/or modify it under
+    the same terms as Perl Artistic License.
+
+    http://en.wikipedia.org/wiki/Artistic_License
+
+SEE ALSO
+    <http://www.aaronland.info/weblog/2009/06/01/bubblegum/#iamhere>
+
+    <http://www.modestmaps.com/>
+
+    <http://developer.cloudmade.com/>
+
+    <http://raphaeljs.com/>
+
+    <http://www.getlatlon.com/>
+
+    <http://github.com/straup/js-iamheremap/>
+
+    <http://github.com/straup/js-flickr-api/>
+
+    <http://github.com/straup/js-geolocation/>
+
+POD ERRORS
+    Hey! The above document had some coding errors, which are explained
+    below:
+
+    Around line 92:
+        Expected '=item *'
+

@@ -228,7 +228,6 @@ info.aaronland.iamhere.Map = function(target, args){
                 return false;
             }
 
-            console.log("WTF " + loc);
             _self.geocode(loc);
             return false;
     });
@@ -267,12 +266,16 @@ info.aaronland.iamhere.Map.prototype.loadModestMap = function(){
     var lon = (canhas_point) ? this.args['longitude'] : this.lon;
     var zoom = (this.args['zoom']) ? this.args['zoom'] : this.zoom;
 
+    lat = Number(lat);
+    lon = Number(lon);
+    zoom = Number(zoom);
+
     // hello, little map-y fella
 
     this.map_obj = new com.modestmaps.Map('iamhere_viewport', provider, new com.modestmaps.Point(this.map_width, this.map_height))
     var controls = new com.modestmaps.MapControls(this.map_obj);
 
-    this.map_obj.setCenterZoom(new com.modestmaps.Location(lat, lon), zoom);
+    this.goTo(lat, lon, zoom);
 
     // events 
 
@@ -287,7 +290,7 @@ info.aaronland.iamhere.Map.prototype.loadModestMap = function(){
         _self.zoom = zoom;
         _self.woeid = null;
 
-        _self.log("map centered on " + center.toString());
+        _self.log("on change, map centered on " + center.toString() + " @" + zoom);
 
         _self.updateContext();
    	_self.reverseGeocode(center.lat, center.lon);
@@ -296,11 +299,6 @@ info.aaronland.iamhere.Map.prototype.loadModestMap = function(){
     this.map_obj.addCallback("zoomed", _onChange);
     this.map_obj.addCallback("panned", _onChange);
     this.map_obj.addCallback("centered", _onChange);
-
-    if (canhas_point){
-        _onChange();
-    }
-
 };
 
 // sudo, make me a generic "who's on first" library...
@@ -710,7 +708,7 @@ info.aaronland.iamhere.Map.prototype.formatCoord = function(coord){
     var decimals = this.args['max_decimal_points'];
 
     if (decimals){
-        coord = coord.toFixed(decimals);
+        coord = Number(coord).toFixed(decimals);
     }
 
     return coord;

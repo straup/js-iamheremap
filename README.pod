@@ -89,7 +89,7 @@ The longitude where the map should be displayed on load.
 
 The default is 0.0
 
-=item B<zoom>
+=item * B<zoom>
 
 The zoom level that the map should load with.
 

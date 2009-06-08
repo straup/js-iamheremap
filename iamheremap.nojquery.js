@@ -3741,7 +3741,6 @@ com.modestmaps.MapControls = function(map)
     this.div.style.position = 'absolute';
     this.div.style.left = '0px';
     this.div.style.top = '0px';
-    this.div.style.zIndex = 100;
     map.parent.appendChild(this.div);
 
     this.canvas = Raphael(this.div, 200, 100);
@@ -5000,10 +4999,10 @@ info.aaronland.iamhere.Map.prototype.loadModestMap = function(){
     var provider = this.args['modestmaps_provider'];
 
     if (typeof(provider) == 'object'){
-        // pass
+        console.log("modestmaps provider is already instantiated, carry on");
     }
 
-    else if (provider == 'cloudmade'){
+    else if (provider == 'CloudMade'){
         provider = new com.modestmaps.CloudMadeProvider(this.args['cloudmade_apikey'], this.args['map_style']);
     }
 

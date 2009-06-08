@@ -51,15 +51,45 @@ L<http://www.aaronland.info/iamhere/>
 
 =item * B<modestmaps_provider> (required)
 
-It's not really, since there's only one tile provider (CloudMade) as of this
-writing but some day there will be more so you might as well get used to being
-specific about it.
+Valid providers are :
 
-=item * B<cloudmade_apikey> (required)
+=over 4
 
-A valid CloudMade API key.
+=item * B<CloudMade>
 
-Again, not really required except for the part where it is today.
+Use map tiles provided by CloudMade. You will need a valid CloudMade API key.
+
+See also: http://maps.cloudmade.com/
+
+=item * B<A MapProvider-derived class (instantiation) of your own>
+
+You may also specify a ModestMaps MapProvider-derived class of your own.
+
+For example, to if you wanted to use OpenStreetMaps tiles:
+
+ info.aaronland.iamhere.OpenStreetMapsProvider = function() {
+ 	com.modestmaps.MapProvider.call(this, function(coordinate) {
+        	var img = coordinate.zoom.toFixed(0) +'/'+ coordinate.column.toFixed(0) +'/'+ coordinate.row.toFixed(0) + '.png';
+        	return 'http://tile.openstreetmap.org/' + img;
+ 	});
+ };
+
+ com.modestmaps.extend(info.aaronland.iamhere.OpenStreetMapsProvider, com.modestmaps.MapProvider);
+
+ var osm = new info.aaronland.iamhere.OpenStreetMapsProvider();
+
+ var args = {
+ 	'modestmaps_provider' : osm,
+	// all your other args here
+ };
+
+ window.map = new info.aaronland.iamhere.Map('map', args);
+
+=back
+
+=item * B<cloudmade_apikey>
+
+A valid CloudMade API key. Required if your I<modestmaps_provider> is "CloudMade".
 
 You can register for a CloudMade API at http://developer.cloudmade.com
 
@@ -67,7 +97,7 @@ You can register for a CloudMade API at http://developer.cloudmade.com
 
 A map style specific to the tile provider.
 
-Required if your 'modestmaps_provider' is CloudMade (which it is). Use '999' for the spooky.
+Required if your I<modestmaps_provider> is "CloudMade" (use '999' for the spooky).
 
 =item * B<flickr_apikey>
 
@@ -81,13 +111,13 @@ You can register for a Flickr API key at http://www.flickr.com/services/api/keys
 
 The latitude where the map should be displayed on load.
 
-The default is 0.0
+The default is 0
   
 =item * B<longitude>
 
 The longitude where the map should be displayed on load.
 
-The default is 0.0
+The default is 0
 
 =item * B<zoom>
 

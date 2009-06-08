@@ -94,20 +94,46 @@ contours for locations that have been reverse-geocoded.</p>
 <ul>
 <li><strong><a name="item_modestmaps_provider"><strong>modestmaps_provider</strong> (required)</a></strong>
 
-<p>It's not really, since there's only one tile provider (CloudMade) as of this
-writing but some day there will be more so you might as well get used to being
-specific about it.</p>
-</li>
-<li><strong><a name="item_cloudmade_apikey"><strong>cloudmade_apikey</strong> (required)</a></strong>
+<p>Valid providers are :</p>
+<ul>
+<li><strong><a name="item_cloudmade"><strong>CloudMade</strong></a></strong>
 
-<p>A valid CloudMade API key.</p>
-<p>Again, not really required except for the part where it is today.</p>
+<p>Use map tiles provided by CloudMade. You will need a valid CloudMade API key.</p>
+<p>See also: <a href="http://maps.cloudmade.com/">http://maps.cloudmade.com/</a></p>
+</li>
+<li><strong><a name="item_class"><strong>A MapProvider-derived class (instantiation) of your own</strong></a></strong>
+
+<p>You may also specify a ModestMaps MapProvider-derived class of your own.</p>
+<p>For example, to if you wanted to use OpenStreetMaps tiles:</p>
+<pre>
+ info.aaronland.iamhere.OpenStreetMapsProvider = function() {
+        com.modestmaps.MapProvider.call(this, function(coordinate) {
+                var img = coordinate.zoom.toFixed(0) +'/'+ coordinate.column.toFixed(0) +'/'+ coordinate.row.toFixed(0) + '.png';
+                return '<a href="http://tile.openstreetmap.org/">http://tile.openstreetmap.org/</a>' + img;
+        });
+ };</pre>
+<pre>
+ com.modestmaps.extend(info.aaronland.iamhere.OpenStreetMapsProvider, com.modestmaps.MapProvider);</pre>
+<pre>
+ var osm = new info.aaronland.iamhere.OpenStreetMapsProvider();</pre>
+<pre>
+ var args = {
+        'modestmaps_provider' : osm,
+        // all your other args here
+ };</pre>
+<pre>
+ window.map = new info.aaronland.iamhere.Map('map', args);</pre>
+</li>
+</ul>
+<li><strong><a name="item_cloudmade_apikey"><strong>cloudmade_apikey</strong></a></strong>
+
+<p>A valid CloudMade API key. Required if your <em>modestmaps_provider</em> is ``CloudMade''.</p>
 <p>You can register for a CloudMade API at <a href="http://developer.cloudmade.com">http://developer.cloudmade.com</a></p>
 </li>
 <li><strong><a name="item_map_style"><strong>map_style</strong></a></strong>
 
 <p>A map style specific to the tile provider.</p>
-<p>Required if your 'modestmaps_provider' is CloudMade (which it is). Use '999' for the spooky.</p>
+<p>Required if your <em>modestmaps_provider</em> is ``CloudMade'' (use '999' for the spooky).</p>
 </li>
 <li><strong><a name="item_flickr_apikey"><strong>flickr_apikey</strong></a></strong>
 
@@ -118,22 +144,18 @@ specific about it.</p>
 <li><strong><a name="item_latitude"><strong>latitude</strong></a></strong>
 
 <p>The latitude where the map should be displayed on load.</p>
-<p>The default is 0.0
+<p>The default is 0
 </p>
 <pre>
 
 =item * B&lt;longitude&gt;</pre>
 <p>The longitude where the map should be displayed on load.</p>
-<p>The default is 0.0</p>
+<p>The default is 0</p>
 </li>
-<dt><strong><a name="item_zoom"><strong>zoom</strong></a></strong>
+<li><strong><a name="item_zoom"><strong>zoom</strong></a></strong>
 
-<dd>
 <p>The zoom level that the map should load with.</p>
-</dd>
-<dd>
 <p>The default is 2</p>
-</dd>
 </li>
 <li><strong><a name="item_map_height"><strong>map_height</strong></a></strong>
 

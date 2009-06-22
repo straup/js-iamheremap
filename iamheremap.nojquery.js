@@ -4568,15 +4568,9 @@ info.aaronland.geo.canhasLocation = function(){};
     
 info.aaronland.geo.canhasLocation.prototype.survey = function(args){
 
-    this.canhas_geode = ((typeof(navigator) == 'object') && (navigator['geolocation'])) ? 1 : 0;
+    this.canhas_w3cgeo = ((typeof(navigator) == 'object') && (navigator['geolocation'])) ? 1 : 0;
     this.canhas_loki = (typeof(Loki) == 'object') ? 1 : 0;
     this.canhas_google = (typeof(google) == 'object') ? 1 : 0;
-
-    // geode
-
-    if ((this.canhas_geode) && (navigator.userAgent.indexOf("Firefox") < 0)){
-        this.canhas_geode = 0;
-    }
 
     // loki
 
@@ -4588,7 +4582,7 @@ info.aaronland.geo.canhasLocation.prototype.survey = function(args){
 
     this.canhas_geolocation = 0;
 
-    if ((this.canhas_geode) || (this.canhas_loki) || (this.canhas_google)){
+    if ((this.canhas_w3cgeo) || (this.canhas_loki) || (this.canhas_google)){
         this.canhas_geolocation = 1;
     }
 
@@ -4607,7 +4601,7 @@ info.aaronland.geo.Location = function(args){
     this.log("flickr support: " + this.canhas_flickr);
     this.log("google support: " + this.canhas_google);
     this.log("loki support: " + this.canhas_loki);
-    this.log("geode support: " + this.canhas_geode);
+    this.log("w3cgeo support: " + this.canhas_w3cgeo);
     this.log("geolocation support: " + this.canhas_geolocation);
 };
 
@@ -4645,27 +4639,43 @@ info.aaronland.geo.Location.prototype.findMyLocation = function(doThisOnSuccess,
         return;
     }
 
-    // geode
+    // w3cgeo
 
-    if (this.canhas_geode){
+    if (this.canhas_w3cgeo){
 
-        this.log("find my location with geode");
+        this.log("find my location with w3cgeo");
 
         // http://labs.mozilla.com/2008/10/introducing-geode/
 
         _onSuccess = function(position){
-            _self.log("geode dispatch returned (success)");
-            doThisOnSuccess(position.latitude, position.longitude);            
+
+            var latitude;
+            var longitude;
+
+            if (typeof(position['coords']) == 'object'){
+                latitude = position.coords.latitude;
+                longitude = position.coords.longitude;
+            }
+
+            else {
+                latitude = position.latitude;
+                longitude = position.longitude;
+
+                _self.log("this looks like geode's w3cgeo, who knows what will happen now...");
+            }
+
+            _self.log("w3cgeo dispatch returned (success)");
+            doThisOnSuccess(latitude, longitude);   
         };
 
         _onFailure = function(error){
-            _self.log("geode dispatch returned (failed)");
+            _self.log("w3cgeo dispatch returned (failed)");
             doThisIfNot('Attempt to get location failed: ' + error.code + ',' + error.message);            
         };
 
         navigator.geolocation.getCurrentPosition(_onSuccess, _onFailure);
 
-        this.log("geode positioning displatched");
+        this.log("w3cgeo positioning displatched");
         return;
     }
 
@@ -5241,7 +5251,7 @@ info.aaronland.iamhere.Map.prototype.reverseGeocode = function(lat, lon){
 
     // seriously, just don't bother...
 
-    if ((lat == 0) && (lon == 0)){
+    if ((parseInt(lat) == 0) && (parseInt(lon) == 0)){
         return;
     }
 

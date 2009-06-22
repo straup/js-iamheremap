@@ -505,7 +505,7 @@ info.aaronland.iamhere.Map.prototype.reverseGeocode = function(lat, lon){
 
     // seriously, just don't bother...
 
-    if ((lat == 0) && (lon == 0)){
+    if ((parseInt(lat) == 0) && (parseInt(lon) == 0)){
         return;
     }
 

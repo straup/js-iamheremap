@@ -57,7 +57,7 @@ info.aaronland.iamhere.Map = function(target, args){
     this.timer_warning = null;
 
     this.flickr = null;
-    this.googlemaps_geocoder = null;
+    this.geocoder = null;
 
     this.paths_woe = new Array();
 
@@ -83,14 +83,22 @@ info.aaronland.iamhere.Map = function(target, args){
 
     // capabilities
 
-    this.canhas_flickr = (typeof(info.aaronland.flickr) == 'object') ? 1 : 0;
-    this.canhas_google = (typeof(google) == 'object') ? 1 : 0;
-
     this.canhas_geocoder = 0;
     this.canhas_reversegeocoder = 0;
     this.canhas_geolocation = 0;
 
+    // note - we are using the automagic default list
+    // of providers assigned by the Geocoder.Capabilities
+    // class based on the contents of this.args
+
+    this.geocoder = new info.aaronland.geo.Geocoder(this.args)
+    this.canhas_geocoder = this.geocoder.capabilities.can_geocode;
+
+    // FIX ME: import info.aaronland.geo.ReverseGeocoder
+
     // flickr
+
+    this.canhas_flickr = (typeof(info.aaronland.flickr) == 'object') ? 1 : 0;
 
     if ((this.canhas_flickr) && (! this.args['flickr_apikey'])){
         this.canhas_flickr = 0;
@@ -98,28 +106,14 @@ info.aaronland.iamhere.Map = function(target, args){
 
     if (this.canhas_flickr){
 
+        this.canhas_reversegeocoder = 1;
+
         var flickr_args = {
             'key' : this.args['flickr_apikey'],
             'enable_logging' : this.args['enable_logging'],
         };
 
         this.flickr = new info.aaronland.flickr.API(flickr_args);
-    }
-
-    // google
-
-    if (this.canhas_google){
-        this.googlemaps_geocoder = new google.maps.Geocoder();
-    }
-
-    // sanity checking
-
-    if ((this.canhas_flickr) || (this.canhas_google)){
-        this.canhas_geocoder = 1;
-    }
-
-    if (this.canhas_flickr){
-        this.canhas_reversegeocoder = 1;
     }
 
     // not entirely sure about this interface...
@@ -133,7 +127,6 @@ info.aaronland.iamhere.Map = function(target, args){
     // reporting
 
     this.log("flickr support: " + this.canhas_flickr);
-    this.log("google support: " + this.canhas_google);
     this.log("geocoder support: " + this.canhas_geocoder);
     this.log("reverse geocoder support: " + this.canhas_reversegeocoder);
     this.log("geolocation support: " + this.canhas_geolocation);
@@ -344,156 +337,25 @@ info.aaronland.iamhere.Map.prototype.findMyLocation = function(cb){
     loc.findMyLocation(_doThisOnSuccess, _doThisIfNot);
 };
 
-// put this in a proper lib with support for geonames, et. al. ?
-
 info.aaronland.iamhere.Map.prototype.geocode = function(query){
 
-    if (! this.canhas_geocoder){
-        return;
-    }
-
-    if (this.canhas_google){
-        return this.geocodeGoogle(query);
-    }
-    
-    if (this.canhas_flickr){
-        this.log("flickr");
-        return this.geocodeFlickr(query);
-    }
-
-
-    this.log("unable to find a geocoding provider");
-    return;
-};
-
-info.aaronland.iamhere.Map.prototype.geocodeGoogle = function(query){
-
-    // http://code.google.com/apis/maps/documentation/v3/services.html#GeocodingRequests
-
-    this.log("geocoding (google) " + query);
-
-    this.displayCoordinates("<i>geocoding</i>");
-    this.displayLocation("");
-
     var _self = this;
 
-    _geocodeComplete = function(results, status) {
-
-        _self.log("geocoding dispatch returned");
-
-        if (status != google.maps.GeocoderStatus.OK){
-            _self.displayWarning("geocoding failed with status " + status);
-            _self.displayLocation("");
-            return;
-        }
-
-        if ((! results) || (! results.length)){
-            _self.displayWarning("geocoding returned no results");
-            _self.displayLocation("");
-            return;
-        }
-        
-        loc = results[0].geometry;
-        lat = loc.location.lat();
-        lon = loc.location.lng();
-        type = loc.location_type;
-
-        _self.log("geocoded " + query + " to " + lat + "," + lon + " (" + type + ")");
-
-        if (type == google.maps.GeocoderLocationType.ROOFTOP){
-            zoom = 17;
-        }
-        
-        else if (type == google.maps.GeocoderLocationType.RANGE_INTERPOLATED){
-            zoom = 15;
-        }
-        
-        else if (type == google.maps.GeocoderLocationType.GEOMETRIC_CENTER){
-            zoom = 13;
-        }
-        
-        else {
-            zoom = 11;
-        }
-
-        _self.goTo(lat, lon, zoom);
-    };
-
-    this.googlemaps_geocoder.geocode({'address' : query}, _geocodeComplete);
-
-    this.log("geocoding request dispatched");
-    return;
-};
-
-info.aaronland.iamhere.Map.prototype.geocodeFlickr = function(query){
-
-    if (! this.canhas_flickr){
+    var doThisOnSuccess = function(rsp){
+        _self.goTo(rsp.lat, rsp.lon, rsp.zoom);
         return;
-    }
-
-    var _self = this;
-
-    _geocodeComplete = function(rsp){
-
-        _self.log("geocoding dispatch returned");
-
-        if (rsp.stat == 'fail'){
-            _self.displayWarning("geocoding failed: " + rsp.message);
-            return;
-        }
-
-        var count = rsp.places.total;
-
-        if (! count){
-            return;
-        }
-
-        if (count > 1){
-            _self.log("geocoding returned " + count + " results, using the first...");
-        }
-
-        var place = rsp.places.place[0];
-        var lat = place.latitude;
-        var lon = place.longitude;
-        var type = place.place_type;
-
-        if (type == 'neighbourhood'){
-            zoom = 15;
-        }
-        
-        else if (type == 'locality'){
-            zoom = 13;
-        }
-        
-        else if (type == 'county'){
-            zoom = 10;
-        }
-
-        else if (type == 'country'){
-            zoom = 7;
-        }
-        
-        else {
-            zoom = 3;
-        }
-
-        _self.goTo(lat, lon, zoom);
     };
 
-    this.displayLocation("<em>geocoding</em>");
-
-    var method = 'flickr.places.find';
-
-    var args = {
-        'query': query,
-        'jsoncallback': '_geocodeComplete'
+    var doThisIfNot = function(rsp){
+        _self.displayWarning("geocoding failed with message: " + rsp.message);
+        _self.displayLocation("");
+        return;
     };
 
-    this.flickr.api_call(method, args);
-
-    this.log("geocoding request dispatched");
-    return;
+    this.geocoder.geocode(query, doThisOnSuccess, doThisIfNot);
 }
+
+// FIX ME: use info.aaronland.geo.ReverseGeocoder
 
 info.aaronland.iamhere.Map.prototype.reverseGeocode = function(lat, lon){
 

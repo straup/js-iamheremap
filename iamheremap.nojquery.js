@@ -5354,11 +5354,11 @@ info.aaronland.geo.ReverseGeocoderCapabilities = function(args){
 
     if (typeof(info.aaronland.flickr) == 'object'){
         this.has_flickr = 1;
-        this.can_geocode += 1;
+        this.can_reverse_geocode += 1;
 
         if ((args) && (! args['flickr_apikey'])){
             this.has_flickr = 0;
-            this.can_geocode -= 1;
+            this.can_reverse_geocode -= 1;
         }
 
         else {
@@ -5370,7 +5370,7 @@ info.aaronland.geo.ReverseGeocoderCapabilities = function(args){
 
     if (typeof(google) == 'object'){
         this.has_google = 1;
-        this.can_geocode += 1;
+        this.can_reverse_geocode += 1;
 
         this.providers.push('google');
     }
@@ -5400,7 +5400,7 @@ info.aaronland.geo.ReverseGeocoder = function(args){
 
 info.aaronland.geo.ReverseGeocoder.prototype.reverse_geocode = function(pt, doThisOnSuccess, doThisIfNot, idx){
 
-    if (this.timer_reversegeo) {
+    if (this.timer_reversegeo){
         this.log("terminating previously running reverse geocoder");
 
         clearTimeout(this.timer_reversegeo);
@@ -5412,13 +5412,15 @@ info.aaronland.geo.ReverseGeocoder.prototype.reverse_geocode = function(pt, doTh
         return;
     }
 
+    if (typeof(idx) == 'undefined'){
+        idx = 0;
+    }
+
+    var delay = (idx == 0) ? 1500 : 0;
+
     var _self = this;
 
     this.timer_reversegeo = setTimeout(function(){
-
-            if (typeof(idx) == 'undefined'){
-                idx = 0;
-            }
             
             var provider = _self.providers[ idx ];
 
@@ -5456,7 +5458,7 @@ info.aaronland.geo.ReverseGeocoder.prototype.reverse_geocode = function(pt, doTh
                 return;
             }
 
-        }, 1500);
+        }, delay);
 
     return;
 };
@@ -5642,15 +5644,15 @@ info.aaronland.iamhere.Map = function(target, args){
 
     // okay, let's get started!
 
-
     this.original_title = document.title;
     this.map_obj = null;
 
-    this.timer_reversegeo = null;
-    this.timer_warning = null;
+    this.timer_warning;
+    this.timer_reversegeo;
 
     this.flickr = null;
     this.geocoder = null;
+    this.reverse_geocoder = null;
 
     this.paths_woe = new Array();
 
@@ -5680,6 +5682,7 @@ info.aaronland.iamhere.Map = function(target, args){
     this.canhas_reversegeocoder = 0;
     this.canhas_geolocation = 0;
 
+    // geocoder
     // note - we are using the automagic default list
     // of providers assigned by the Geocoder.Capabilities
     // class based on the contents of this.args
@@ -5687,7 +5690,24 @@ info.aaronland.iamhere.Map = function(target, args){
     this.geocoder = new info.aaronland.geo.Geocoder(this.args)
     this.canhas_geocoder = this.geocoder.capabilities.can_geocode;
 
-    // FIX ME: import info.aaronland.geo.ReverseGeocoder
+    // reverse geocoder
+    // note - we are not using the automagic list of providers
+    // because we want a woeid in order to do the shapefile luv
+
+    var rg_args = this.args;
+    rg_args['providers'] = ['flickr'];
+
+    this.reverse_geocoder = new info.aaronland.geo.ReverseGeocoder(rg_args);
+    this.canhas_reversegeocoder = this.reverse_geocoder.capabilities.can_reverse_geocode;
+
+    // geolocation
+    // not entirely sure about this interface...
+
+    var canhas = new info.aaronland.geo.canhasLocation();
+    
+    if (canhas.survey(args)){
+        this.canhas_geolocation = 1;
+    }
 
     // flickr
 
@@ -5699,22 +5719,12 @@ info.aaronland.iamhere.Map = function(target, args){
 
     if (this.canhas_flickr){
 
-        this.canhas_reversegeocoder = 1;
-
         var flickr_args = {
             'key' : this.args['flickr_apikey'],
             'enable_logging' : this.args['enable_logging'],
         };
 
         this.flickr = new info.aaronland.flickr.API(flickr_args);
-    }
-
-    // not entirely sure about this interface...
-
-    var canhas = new info.aaronland.geo.canhasLocation();
-    
-    if (canhas.survey(args)){
-        this.canhas_geolocation = 1;
     }
 
     // reporting
@@ -5849,7 +5859,7 @@ info.aaronland.iamhere.Map.prototype.loadModestMap = function(){
     var provider = this.args['modestmaps_provider'];
 
     if (typeof(provider) == 'object'){
-        console.log("modestmaps provider is already instantiated, carry on");
+        this.log("modestmaps provider is already instantiated, carry on");
     }
 
     else if (provider == 'CloudMade'){
@@ -5895,7 +5905,7 @@ info.aaronland.iamhere.Map.prototype.loadModestMap = function(){
         _self.log("on change, map centered on " + center.toString() + " @" + zoom);
 
         _self.updateContext();
-   	_self.reverseGeocode(center.lat, center.lon);
+        _self.reverseGeocode(center.lat, center.lon);
     };
 
     this.map_obj.addCallback("zoomed", _onChange);
@@ -5948,15 +5958,32 @@ info.aaronland.iamhere.Map.prototype.geocode = function(query){
     this.geocoder.geocode(query, doThisOnSuccess, doThisIfNot);
 }
 
-// FIX ME: use info.aaronland.geo.ReverseGeocoder
-
 info.aaronland.iamhere.Map.prototype.reverseGeocode = function(lat, lon){
-
-    this.displayLocation("");
 
     if (! this.canhas_reversegeocoder){
         return;
     }
+
+    if (this.timer_reversegeo){
+        clearTimeout(this.timer_reversegeo);
+    }
+    
+    // the reverse geocoder object itself has a time
+    // but since this is going to get called on every
+    // onchange event (that's probably not ideal) we'll
+    // add some timeout love here too...
+
+    var _self = this;
+
+    this.timer_reversegeo = setTimeout(function(){
+            _self._reverseGeocode(lat, lon);
+    }, 1500);
+
+};
+
+info.aaronland.iamhere.Map.prototype._reverseGeocode = function(lat, lon){
+
+    this.displayLocation("");
 
     // seriously, just don't bother...
 
@@ -5966,64 +5993,34 @@ info.aaronland.iamhere.Map.prototype.reverseGeocode = function(lat, lon){
 
     var _self = this;
 
-    if (this.timer_reversegeo) {
-        clearTimeout(this.timer_reversegeo);
-        this.timer_reversegeo = null;
-    }
+    var doThisOnSuccess = function(rsp){
 
-    this.timer_reversegeo = setTimeout(function() {
-
-    	_reverseGeocodeComplete = function(rsp){
-
-            _self.log("reverse geocoding dispatch returned");
-
-        	if (rsp.stat == 'fail'){
-                        _self.displayLocation("<em>unable to reverse geocode your current position</em>");
-            		_self.displayWarning("reverse geocoding failed: " + rsp.message);
-            		return;
-        	}
-
-        	if (rsp.places.total == 0){
-                    	_self.displayLocation("<em>unable to reverse geocode your current position</em>");
-            		return;
-        	}
-
-                var name = rsp.places.place[0].name;
-                var woeid = rsp.places.place[0].woeid;
-
-                _self.woeid = woeid;
-            	_self.woeid_name = name;
-
-            	_self.displayLocation(name, woeid);
+        _self.woeid = rsp['uuid'];
+        _self.woeid_name = rsp['name'];
+        
+        _self.displayLocation(rsp['name'], rsp['uuid']);
             
-            	if (_self.args['auto_display_shapefiles']){
-                    _self.drawShapefile(woeid);
-		}
-
-    	};
-
-    	_self.log("reverse geocoding " + lat + "," + lon);
-	_self.displayLocation("<em>reverse geocoding</em>");
-
-    	var method = 'flickr.places.findByLatLon';
-        var accuracy = _self.map_obj.getZoom();
-
-        if (accuracy > 16){
-            accuracy = 16;
+        if (_self.args['auto_display_shapefiles']){
+            _self.drawShapefile(rsp['uuid']);
         }
+        
+        return;
+    };
 
-    	var args = {
-        	'lat':lat,
-                'lon': lon,
-                'accuracy' : accuracy,
-                'jsoncallback': '_reverseGeocodeComplete'
-	};
+    var doThisIfNot = function(rsp){
+        _self.displayLocation("<em>unable to reverse geocode your current position</em>");
+        _self.displayWarning("reverse geocoding failed: " + rsp.message);
+        return;
+    };
 
-        _self.flickr.api_call(method, args);
+    _self.displayLocation("<em>reverse geocoding</em>");
 
-    	_self.log("reverse geocoding request dispatched");
-    }, 1500);
+    var zoom = _self.map_obj.getZoom();
+    var pt = {'lat' : lat, 'lon' : lon, 'zoom' : zoom}
 
+    this.reverse_geocoder.reverse_geocode(pt, doThisOnSuccess, doThisIfNot);
+
+    _self.log("reverse geocoding " + lat + "," + lon + "," + zoom);
     return;
 };
 
@@ -6105,14 +6102,7 @@ info.aaronland.iamhere.Map.prototype.goTo = function(lat, lon, zoom, do_reverseg
     this.lon = lon;
 
     this.map_obj.setCenterZoom(new com.modestmaps.Location(lat, lon), zoom);
-    
-    var _self = this;
-
-    if (this.canhas_reversegeocoder){
-        setTimeout(function(){
-                _self.reverseGeocode(lat, lon);
-        }, 1500);
-    }
+    this.reverseGeocode(lat, lon);
 };
 
 info.aaronland.iamhere.Map.prototype.loadQueryArgs = function(allowed){

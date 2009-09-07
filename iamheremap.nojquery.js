@@ -5900,7 +5900,7 @@ info.aaronland.iamhere.Map.prototype.loadModestMap = function(){
         _self.lat = center.lat;
         _self.lon = center.lon;
         _self.zoom = zoom;
-        _self.woeid = null;
+        _self.woeid = 0;
 
         _self.log("on change, map centered on " + center.toString() + " @" + zoom);
 

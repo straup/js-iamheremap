@@ -641,7 +641,12 @@ info.aaronland.iamhere.Map.prototype.displayCoordinates = function(lat, lon){
     var plain =  lat + ", " + lon;
     var pretty = this.formatDegree(lat, 'lat') + " " + this.formatDegree(lon, 'lon');
 
-    var label = plain + " (" + pretty + ")";
+    var geohash = encodeGeoHash(lat, lon);
+	
+    var label = '<span style="color:#666;">dec : </span>' + plain;
+    label += ' <span style="color:#666;">dms : </span>' + pretty;
+    label += ' <span style="color:#666;">geohash : </span>' + geohash;
+
     $("#iamhere_coordinates").html(label);
 
     this.updateDocumentTitle(lat, lon);

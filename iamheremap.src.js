@@ -1,6 +1,6 @@
 /*
 
-info.aaronland.iamhere.Map library v1.1.1
+info.aaronland.iamhere.Map library v1.2.1
 Copyright (c) 2009 Aaron Straup Cope
 
 This is free software. You may redistribute it and/or modify it under
@@ -61,7 +61,8 @@ info.aaronland.iamhere.Map = function(target, args){
 
     this.paths_woe = new Array();
 
-    // get/set cookies for last location, maybe?
+    // TODO:
+    // get or set cookies for last location, maybe?
 
     this.lat = 0;
     this.lon = 0;
@@ -74,7 +75,7 @@ info.aaronland.iamhere.Map = function(target, args){
     // as the user moves around.
 
     this.uri = new info.aaronland.URI();
-    
+
     // the URI is the command line, or something like that
 
     if (! this.args['disable_query_args']){
@@ -109,7 +110,7 @@ info.aaronland.iamhere.Map = function(target, args){
     // not entirely sure about this interface...
 
     var canhas = new info.aaronland.geo.canhasLocation();
-    
+
     if (canhas.survey(args)){
         this.canhas_geolocation = 1;
     }
@@ -155,20 +156,24 @@ info.aaronland.iamhere.Map = function(target, args){
     var crosshair_y = (this.map_height / 2) - 8;
     var crosshair_x = this.map_width / 2;
 
+    // TODO:
     // please to make the inline css go away...
 
-    // to do: generate a uuid to append to iamhere_*
+    // TODO:
+    // generate a uuid to append to iamhere_*
     // identifiers so that more than one map may be
     // embedded in a page...
 
     var html = '';
 
+    // geocoding and find my location buttons
+
     if ((this.canhas_geocoder) || (this.canhas_geolocation)){
-    	html += '<form id="iamhere_geocoder" style="text-align:center;max-width:' + this.map_width + ';">';
+	html += '<form id="iamhere_geocoder" style="text-align:center;max-width:' + this.map_width + ';">';
 
         if (this.canhas_geocoder){
 
-            html += '<input id="iamhere_geocode_me" type="text" name="location" size="30%;" value="" style="border:1px solid;padding:1px;" />' + 
+            html += '<input id="iamhere_geocode_me" type="text" name="location" size="30%;" value="" style="border:1px solid;padding:1px;" />' +
                     '<input id="iamhere_find_this" type="submit" value="&#8592; FIND THIS PLACE" style="border:1px solid; margin-left:10px;" />';
 	}
 
@@ -180,33 +185,34 @@ info.aaronland.iamhere.Map = function(target, args){
         html += '</form>';
     }
 
-    // sudo, add support to make the map/crosshair work 
-    // with window resizing...
-
-    html += '<div id="iamhere_chooser" style="position:relative;max-width:' + this.map_width + ';">' + 
+    html += '<div id="iamhere_chooser" style="position:relative;max-width:' + this.map_width + ';">' +
     	    '<div id="iamhere_viewport"></div>' +
             '<div id="iamhere_crosshair" style="' +
-            'position: absolute;top:' + crosshair_y + 'px;height:19px;width:19px;left:' + crosshair_x + ';margin-left:-8px;display:block;' + 
-    	    'background-position: center center;background-repeat: no-repeat;' + 
-    	    '"></div></div>'; 
+            'position: absolute;top:' + crosshair_y + 'px;height:19px;width:19px;left:' + crosshair_x + ';margin-left:-8px;display:block;' +
+    	    'background-position: center center;background-repeat: no-repeat;' +
+    	    '"></div></div>';
+
+    // OSM CC license
 
     if (this.args['modestmaps_provider'] == 'CloudMade'){
 
         var date = new Date();
         var yyyy = date.getYear() + 1900;
 
-        html += '<div id="iamhere_osm_notice" style="' + 
-            	'text-align:right;font-size:10px;font-family:sans-serif;margin-top:5px;max-width:' + this.map_width + ';' + 
+        html += '<div id="iamhere_osm_notice" style="' +
+            	'text-align:right;font-size:10px;font-family:sans-serif;margin-top:5px;max-width:' + this.map_width + ';' +
                 '">Map data <a href="http://creativecommons.org/licenses/by-sa/3.0/">CCBYSA</a> ' + yyyy + ' <a href="http://openstreetmap.org/">OpenStreetMap.org</a> contributors</a></div>';
     }
 
-    html += '<div id="iamhere_coordinates" style="' + 
+    // the actual coordinates displayed (lat, lon, geohash, etc.)
+
+    html += '<div id="iamhere_coordinates" style="' +
             'min-height:10pt;font-family:sans-serif;font-weight:700;font-size:10pt;margin-bottom:5px;margin-top:15px;text-align:center;max-width:' + this.map_width + ';' +
-            '"></div>' + 
+            '"></div>' +
             '<div id="iamhere_location" style="'+
             'min-height:10pt;font-family:sans-serif;font-size:10pt;margin-bottom:5px;margin-top:10px;text-align:center;max-width:' + this.map_width + ';' +
-            '"></div>' + 
-            '<div id="iamhere_warning" style="'+    
+            '"></div>' +
+            '<div id="iamhere_warning" style="'+
             'min-height:10pt;color:red;font-family:serif;font-style:italic;font-size:10pt;margin-bottom:5px;margin-top:10px;text-align:center;max-width:' + this.map_width + ';' +
             '"></div>';
 
@@ -216,12 +222,12 @@ info.aaronland.iamhere.Map = function(target, args){
     // this is just a nuisance to do above...
 
     var data_url = '"data:image/gif;base64,R0lGODlhEwATAKEBAAAAAP///////////' +
-    		   'yH5BAEKAAIALAAAAAATABMAAAIwlI+pGhALRXuRuWopPnOj7hngEpRm6Z' + 
+    		   'yH5BAEKAAIALAAAAAATABMAAAIwlI+pGhALRXuRuWopPnOj7hngEpRm6Z' +
     		   'ymAbTuC7eiitJlNHr5tmN99cNdQpIhsVIAADs="';
 
     $("#iamhere_crosshair").css("background", "url(" + data_url + ")");
 
-    // geocoding
+    // onclick: geocoding
 
     $("#iamhere_find_this").click(function(){
             var loc = $("#iamhere_geocode_me").val();
@@ -235,7 +241,7 @@ info.aaronland.iamhere.Map = function(target, args){
             return false;
     });
 
-    // positioning (geo-location)
+    // onclick: positioning (geo-location)
 
     $("#iamhere_find_me").click(function(){
             _self.displayLocation("<em>establishing current location</em>");
@@ -243,7 +249,7 @@ info.aaronland.iamhere.Map = function(target, args){
             return false;
     });
 
-    // dwim (zoom in/out when the crosshairs are clicked)
+    // onclick: dwim and zoom in/out when the crosshairs are clicked
 
     $("#iamhere_crosshair").dblclick(function(e){
             var action = _self.map_obj.getDoubleClick();
@@ -259,8 +265,6 @@ info.aaronland.iamhere.Map.prototype.loadModestMap = function(){
 
     var _self = this;
 
-    //
-
     var provider = this.args['modestmaps_provider'];
 
     if (typeof(provider) == 'object'){
@@ -271,9 +275,12 @@ info.aaronland.iamhere.Map.prototype.loadModestMap = function(){
         provider = new com.modestmaps.CloudMadeProvider(this.args['cloudmade_apikey'], this.args['map_style']);
     }
 
-    else { } 
+    else { }
 
-    // sudo, check to see there's a cookie with last location maybe?
+    this.map_provider = provider;
+
+    // TODO:
+    // check to see there's a cookie with last location maybe?
 
     var canhas_point = ((this.args['latitude']) && (this.args['longitude'])) ? 1 : 0;
 
@@ -294,7 +301,7 @@ info.aaronland.iamhere.Map.prototype.loadModestMap = function(){
 
     this.goTo(lat, lon, zoom);
 
-    // events 
+    // events
 
     _onChange = function (){
         $("#iamhere_warning").hide();
@@ -316,9 +323,43 @@ info.aaronland.iamhere.Map.prototype.loadModestMap = function(){
     this.map_obj.addCallback("zoomed", _onChange);
     this.map_obj.addCallback("panned", _onChange);
     this.map_obj.addCallback("centered", _onChange);
-};
 
-// sudo, make me a generic "who's on first" library...
+    // map resizing...
+
+    var container = document.getElementById('container');
+
+    if (container){
+	    window.onresize = function() {
+
+		// first update the map itself
+
+		_self.map_obj.setSize(container.offsetWidth, _self.map_height);
+
+		// now position the crosshairs
+
+		_self.map_width = $(document).width();
+
+		var crosshair_x = Number(_self.map_width / 2) - 8;
+		var crosshair_y = Number(_self.map_height / 2) - 8;
+
+		var crosshair = $('#iamhere_crosshair');
+		crosshair.css('top', crosshair_y);
+		crosshair.css('left', crosshair_x);
+
+		var chooser = $('#iamhere_chooser');
+		chooser.css('max-width', _self.map_width);
+
+		var coords = $('#iamhere_coordinates');
+		coords.css('max-width', _self.map_width);
+
+		var loc = $('#iamhere_location');
+		loc.css('max-width', _self.map_width);
+
+	    };
+
+    }
+
+};
 
 info.aaronland.iamhere.Map.prototype.findMyLocation = function(cb){
 
@@ -372,7 +413,7 @@ info.aaronland.iamhere.Map.prototype.reverseGeocode = function(lat, lon){
     if (this.timer_reversegeo){
         clearTimeout(this.timer_reversegeo);
     }
-    
+
     // the reverse geocoder object itself has a time
     // but since this is going to get called on every
     // onchange event (that's probably not ideal) we'll
@@ -402,13 +443,13 @@ info.aaronland.iamhere.Map.prototype._reverseGeocode = function(lat, lon){
 
         _self.woeid = rsp['uuid'];
         _self.woeid_name = rsp['name'];
-        
+
         _self.displayLocation(rsp['name'], rsp['uuid']);
-            
+
         if (_self.args['auto_display_shapefiles']){
             _self.drawShapefile(rsp['uuid']);
         }
-        
+
         return;
     };
 
@@ -449,9 +490,9 @@ info.aaronland.iamhere.Map.prototype.drawShapefile = function(woeid){
         }
 
         if (! rsp.place.has_shapedata){
-            _self.displayWarning("woe id has no shapedata");            
+            _self.displayWarning("woe id has no shapedata");
             return;
-       	}
+        }
 
         // clean up any existing paths_woe
 
@@ -511,8 +552,8 @@ info.aaronland.iamhere.Map.prototype.goTo = function(lat, lon, zoom, do_reverseg
 };
 
 info.aaronland.iamhere.Map.prototype.loadQueryArgs = function(allowed){
-    
-    this.log("loading query arguments");   
+
+    this.log("loading query arguments");
 
     var params_map = {
         'latitude' : 'latitude',
@@ -530,7 +571,7 @@ info.aaronland.iamhere.Map.prototype.loadQueryArgs = function(allowed){
             var value = this.uri.query.get(public_key);
             this.args[private_key] = value;
 
-            this.log('assigned ' + private_key + ': ' + value); 
+            this.log('assigned ' + private_key + ': ' + value);
         }
     }
 };
@@ -626,8 +667,8 @@ info.aaronland.iamhere.Map.prototype.formatDegree = function(value, axis){
 };
 
 info.aaronland.iamhere.Map.prototype.displayCoordinates = function(lat, lon){
-    
-    // lon is not passed during geocoding when we 
+
+    // lon is not passed during geocoding when we
     // display a message while we wait for a response
 
     if (! lon){
@@ -641,15 +682,57 @@ info.aaronland.iamhere.Map.prototype.displayCoordinates = function(lat, lon){
     var plain =  lat + ", " + lon;
     var pretty = this.formatDegree(lat, 'lat') + " " + this.formatDegree(lon, 'lon');
 
-    var geohash = encodeGeoHash(lat, lon);
-	
+    var geohash = this.makeGeohash(lat, lon);
+
+    var loc = new com.modestmaps.Location(lat, lon);
+    var pt = this.map_obj.locationPoint(loc);
+    var coord = this.map_obj.pointCoordinate(pt);
+    var tile = coord.zoom + '/' + parseInt(coord.column) + '/' + parseInt(coord.row);
+
     var label = '<span style="color:#666;">dec : </span>' + plain;
     label += ' <span style="color:#666;">dms : </span>' + pretty;
     label += ' <span style="color:#666;">geohash : </span>' + geohash;
+    label += ' <span style="color:#666;">tile : </span>' + tile;
 
     $("#iamhere_coordinates").html(label);
 
     this.updateDocumentTitle(lat, lon);
+};
+
+info.aaronland.iamhere.Map.prototype.makeGeohash = function(lat, lon, zoom){
+
+    if (! zoom){
+	zoom = this.zoom;
+    }
+
+    var geohash = encodeGeoHash(lat, lon);
+
+    if (zoom > 14){
+	// pass
+    }
+
+    if (zoom <= 2){
+	geohash = geohash.substring(0, 2);
+    }
+
+    else if (zoom <= 6){
+	geohash = geohash.substring(0, 4);
+    }
+
+    else if (zoom <= 9){
+	geohash = geohash.substring(0, 6);
+    }
+
+    else if (zoom <= 12){
+	geohash = geohash.substring(0, 8);
+    }
+
+    else {
+	geohash = geohash.substring(0, 10);
+    }
+
+    this.log('geohash for ' + lat + ',' + lon + ' @' + zoom + ' : ' + geohash);
+    return geohash;
 };
 
 info.aaronland.iamhere.Map.prototype.displayLocation = function(placename, woeid){
@@ -686,14 +769,14 @@ info.aaronland.iamhere.Map.prototype.displayLocation = function(placename, woeid
 
         var lat = this.formatCoord(this.lat);
         var lon = this.formatCoord(this.lon);
- 
-       this.updateDocumentTitle(lat, lon, placename);
+
+	this.updateDocumentTitle(lat, lon, placename);
     }
 
 };
 
 info.aaronland.iamhere.Map.prototype.displayWarning = function(msg){
-    
+
     this.log('warning: ' + msg);
 
     $("#iamhere_warning").html(msg);
